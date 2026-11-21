@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>How AutoSchema works</title><style>
+:root{color-scheme:light;--ink:#19332d;--muted:#526a63;--green:#176b50;--line:#d8e5dd}
+*{box-sizing:border-box}body{margin:0;background:#f3f7f4;color:var(--ink);font:16px/1.75 system-ui,-apple-system,sans-serif}main{max-width:980px;margin:38px auto;padding:36px 46px;background:white;border:1px solid var(--line);border-radius:16px}h1{font-size:clamp(29px,5vw,44px);line-height:1.2;margin:12px 0 22px}h2{font-size:25px;line-height:1.35;border-top:1px solid var(--line);padding-top:26px;margin-top:38px;scroll-margin-top:20px}p{margin:14px 0}a{color:var(--green);text-underline-offset:3px}code{font:0.9em/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;background:#edf4ee;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}pre{background:#102a22;color:#e7f5e9;padding:20px;border-radius:10px;overflow-x:auto}pre code{background:none;padding:0;color:inherit;overflow-wrap:normal}table{border-collapse:collapse;width:100%;margin:20px 0;font-size:14px;table-layout:auto}th,td{border:1px solid var(--line);padding:11px 12px;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{background:#eaf3ed}td code{font-size:12px}nav{background:#f1f7f2;border-radius:10px;padding:18px 24px;margin:26px 0}nav ul{columns:2;margin-bottom:0;padding-left:20px}.pipeline{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.pipeline li{border:1px solid var(--line);border-top:3px solid var(--green);border-radius:9px;background:#f2f8f3;padding:15px;line-height:1.4;font-weight:600}.pipeline span{display:block;font-size:12px;letter-spacing:.1em;color:var(--green);margin-bottom:9px}li{margin:8px 0}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--green)}footer{border-top:1px solid var(--line);margin-top:35px;padding-top:16px;font-size:13px;color:var(--muted)}@media(max-width:650px){main{margin:0;border:0;border-radius:0;padding:24px 18px}nav ul{columns:1}th,td{padding:8px;font-size:12px}h2{font-size:22px}}@media print{body{background:white}main{margin:0;max-width:none;border:0;padding:0}nav{display:none}pre{white-space:pre-wrap}h2{break-after:avoid}table,.pipeline{break-inside:avoid}}
+</style></head><body><main><div class="eyebrow">AutoSchema documentation</div><h1>How AutoSchema Converts CSV Data into SQL Tables</h1>
+<p>Bismillah. AutoSchema turns a CSV file or pandas DataFrame into related SQL tables, then checks that joining those tables reconstructs the normalized input exactly. It helps you inspect repeated data, discover possible relationships, and query the result with SQL. The current library is version 0.3.0.</p><nav aria-label="Contents"><strong>On this page</strong><ul><li><a href="#the-basic-idea">The basic idea</a></li><li><a href="#how-a-conversion-works">How a conversion works</a></li><li><a href="#what-keys-mean">What keys mean</a></li><li><a href="#what-the-retail-example-produces">What the retail example produces</a></li><li><a href="#use-the-python-library">Use the Python library</a></li><li><a href="#find-the-output-files">Find the output files</a></li><li><a href="#how-to-interpret-the-result">How to interpret the result</a></li><li><a href="#planned-preview-and-review-workflow">Planned preview and review workflow</a></li></ul></nav>
+<h2 id="the-basic-idea">The basic idea</h2>
+<p>Imagine an orders CSV repeats a customer’s name and city on every order line:</p>
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Line</th>
+<th>Customer</th>
+<th>Name</th>
+<th>City</th>
+<th>Quantity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O001</td>
+<td>1</td>
+<td>C01</td>
+<td>Amina</td>
+<td>Melbourne</td>
+<td>2</td>
+</tr>
+<tr>
+<td>O001</td>
+<td>2</td>
+<td>C01</td>
+<td>Amina</td>
+<td>Melbourne</td>
+<td>1</td>
+</tr>
+<tr>
+<td>O002</td>
+<td>1</td>
+<td>C02</td>
+<td>Yusuf</td>
+<td>Sydney</td>
+<td>3</td>
+</tr>
+<tr>
+<td>O003</td>
+<td>1</td>
+<td>C01</td>
+<td>Amina</td>
+<td>Melbourne</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>If each customer ID always maps to the same name and city, those details can be stored once in a customer table. The order lines retain the customer ID, which connects each line to its customer. This is a functional dependency: <code>customer_id → customer_name, city</code>. The rows above illustrate the relationship; AutoSchema creates a dimension only when its observed savings justify the extra table.</p>
+<p>The physical tables store the separated data. A SQL view named <code>dataset</code> joins them to present the original logical columns. You can query <code>dataset</code> without manually assembling the joins.</p>
+<h2 id="how-a-conversion-works">How a conversion works</h2>
+<ol class="pipeline" aria-label="AutoSchema processing stages"><li><span>01</span>CSV file or pandas DataFrame</li><li><span>02</span>Validate and profile columns</li><li><span>03</span>Discover exact relationships</li><li><span>04</span>Choose tables and keys</li><li><span>05</span>Write a database and joining view</li><li><span>06</span>Verify reconstructed rows</li><li><span>07</span>Save SQL CSV statistics and report</li></ol>
+<ol>
+<li>
+<p><strong>Read and preserve values.</strong> Validate headers and CSV field counts. Keep empty fields and text such as <code>NA</code>. Convert values to numeric types only when their text representation round-trips safely. A postcode such as <code>0300</code> remains text.</p>
+</li>
+<li>
+<p><strong>Profile the data.</strong> Count rows, duplicates, blank cells, and distinct values. Record inferred SQL types and numeric minimum, mean, and maximum values where applicable.</p>
+</li>
+<li>
+<p><strong>Discover relationships.</strong> Check whether one column, or a combination of columns, consistently determines other values. Conflicting mappings are excluded from exact dependencies.</p>
+</li>
+<li>
+<p><strong>Choose a schema.</strong> Move suitable repeated attributes into dimension tables using a bounded, greedy plan. Keep their join keys in the <code>records</code> fact table and select or validate a primary key.</p>
+</li>
+<li>
+<p><strong>Write and verify SQL.</strong> Create tables with primary and foreign keys, insert the rows, and build <code>dataset</code>. Compare its reconstructed rows with the normalized typed input, including duplicate multiplicities.</p>
+</li>
+<li>
+<p><strong>Publish the result.</strong> Build the database, exports, summary, and report in a staging directory. Publish the completed output directory after they succeed. Existing output files are not replaced.</p>
+</li>
+</ol>
+<h2 id="what-keys-mean">What keys mean</h2>
+<p>A <strong>primary key</strong> uniquely identifies a row in a table. A <strong>foreign key</strong> connects a row to a key in another table. A <strong>composite key</strong> uses multiple columns together.</p>
+<p>For example, <code>order_id</code> repeats across an order’s lines, but <code>(order_id, line_number)</code> can uniquely identify each line. Inventory details may depend on <code>(product_id, warehouse_id)</code> because the same product can have a different storage location in each warehouse.</p>
+<p>You can supply the domain key with <code>key_columns</code>. AutoSchema checks that it is unique and contains no blanks. If you leave it unset, the library searches for candidate keys and prefers identifier-like names over accidentally unique measurements.</p>
+<h2 id="what-the-retail-example-produces">What the retail example produces</h2>
+<p>The included synthetic retail dataset has <strong>4,800 rows and 23 columns</strong>. Its saved example contains these six physical tables:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th style="text-align:right">Rows</th>
+<th>What it stores</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>records</code></td>
+<td style="text-align:right">4,800</td>
+<td>Order lines, join keys, quantities, discounts, and delivery notes</td>
+</tr>
+<tr>
+<td><code>dim_customer_id</code></td>
+<td style="text-align:right">120</td>
+<td>Customer names, cities, and segments</td>
+</tr>
+<tr>
+<td><code>dim_product_id</code></td>
+<td style="text-align:right">60</td>
+<td>Product names, categories, brands, and listed prices</td>
+</tr>
+<tr>
+<td><code>dim_warehouse_id</code></td>
+<td style="text-align:right">4</td>
+<td>Warehouse names, cities, and postcodes</td>
+</tr>
+<tr>
+<td><code>dim_order_id</code></td>
+<td style="text-align:right">1,200</td>
+<td>Order dates, statuses, and sales channels</td>
+</tr>
+<tr>
+<td><code>dim_product_id_warehouse_id</code></td>
+<td style="text-align:right">240</td>
+<td>Storage locations and reorder points for each product and warehouse pair</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>dataset</code> view reconstructs all <strong>4,800 rows and 23 original columns</strong>. The example reduces stored cells from <strong>110,400 to 44,956</strong>, a <strong>59.28% reduction</strong>. Stored cells count rows × columns across physical tables, including their keys; they measure repeated values removed, not bytes compressed.</p>
+<h2 id="use-the-python-library">Use the Python library</h2>
+<p>From your repository folder, activate your virtual environment and install the package:</p>
+<pre><code class="language-bash">source .venv/bin/activate
+python -m pip install -e .
+</code></pre>
+<p>Convert the included CSV into a new output directory:</p>
+<pre><code class="language-python">from autoschema import convert_csv
+
+result = convert_csv(
+    &quot;data/retail_complex.csv&quot;,
+    out=&quot;results/my-run&quot;,
+    key_columns=[&quot;order_id&quot;, &quot;line_number&quot;],
+)
+
+stats = result.summary()
+print(stats[&quot;table_rows&quot;])
+print(stats[&quot;reconstruction_exact&quot;])
+print(result.report_path)
+</code></pre>
+<p>Choose a fresh or empty output directory for every conversion.</p>
+<p>Read the original logical structure or query it with SQL:</p>
+<pre><code class="language-python">rows = result.read_table()  # defaults to the dataset view
+customers = result.read_table(&quot;dim_customer_id&quot;)
+
+sales = result.query(&quot;&quot;&quot;
+    SELECT category, SUM(quantity) AS units
+    FROM dataset
+    GROUP BY category
+    ORDER BY units DESC
+&quot;&quot;&quot;)
+print(sales)
+</code></pre>
+<p>The query methods return pandas DataFrames and open a read-only database connection for each call.</p>
+<p>To convert data already in pandas, call <code>convert_dataframe(frame, out=&quot;results/my-frame&quot;)</code>. Missing DataFrame values become empty strings and the input frame remains unchanged. To reopen saved results later:</p>
+<pre><code class="language-python">from autoschema import load_result
+
+saved = load_result(&quot;results/my-run&quot;)
+print(saved.query(&quot;SELECT COUNT(*) AS rows FROM dataset&quot;))
+</code></pre>
+<p>Reopening checks saved metadata and database structure. It does not rerun inference or repeat the original input comparison.</p>
+<h2 id="find-the-output-files">Find the output files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>How to use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dataset.sqlite</code></td>
+<td>Open the SQLite database to inspect actual tables and data</td>
+</tr>
+<tr>
+<td><code>dataset.duckdb</code></td>
+<td>Equivalent database when the optional DuckDB engine is selected</td>
+</tr>
+<tr>
+<td><code>schema.sql</code></td>
+<td>Read table and view definitions</td>
+</tr>
+<tr>
+<td><code>dataset.sql</code></td>
+<td>Restore the schema and data inserts into the selected database engine</td>
+</tr>
+<tr>
+<td><code>records.csv</code> and <code>dim_*.csv</code></td>
+<td>Open readable copies of each physical table</td>
+</tr>
+<tr>
+<td><code>schema.json</code></td>
+<td>Read the full statistics, inferred relationships, keys, timings, and warnings</td>
+</tr>
+<tr>
+<td><code>report.html</code></td>
+<td>Open the visual processing report in a browser</td>
+</tr>
+</tbody>
+</table>
+<p>The existing example is in <code>results/retail-demo/</code>. For a guided, executable walkthrough, open <code>notebooks/autoschema_walkthrough.ipynb</code> in Jupyter or VS Code, select the project’s Python environment, and run the cells in order. Its default output location is <code>results/notebook-runs/</code>.</p>
+<h2 id="how-to-interpret-the-result">How to interpret the result</h2>
+<p><strong>Exact reconstruction concerns normalized values.</strong> Duplicate row counts and original column order are retained. SQL row order, original CSV quoting, original file bytes, and arbitrary pandas dtypes are not preserved.</p>
+<p><strong>Inferred relationships need domain review.</strong> A pattern in one input file may not hold for future data. The planner is heuristic and does not guarantee an optimal schema. The default search considers determinants and keys up to two columns, prioritizes up to 30 candidate columns, and allows up to 2,000 candidate checks per search. The summary discloses search bounds and reached budgets.</p>
+<p><strong>Cell reduction and file size answer different questions.</strong> Use <code>cell_reduction_percent</code> for fewer repeated values, and <code>database_bytes</code> or <code>database_to_csv_ratio</code> for actual database storage. Database overhead can make a normalized database larger than its CSV. The size ratio excludes the extra export files.</p>
+<p><strong>The current implementation needs the data to fit in memory.</strong> Both conversion and exact reconstruction verification load data into RAM.</p>
+<h2 id="planned-preview-and-review-workflow">Planned preview and review workflow</h2>
+<p>The proposed next version would separate analysis from database generation: preview the suggested tables, inspect the evidence for each relationship, adjust keys, accept or reject relationships, and then write SQL from the reviewed plan. This review API is planned; version 0.3.0 currently performs inference and database generation in one conversion call.</p>
+<p>Alhamdulillah, you can already convert data, inspect statistics and reports, query the reconstructed dataset, and reopen saved results. The next step is making the inferred schema easier to review before conversion, insyallah.</p>
+<footer>Editable source: <a href="how_it_works.md">how_it_works.md</a> · <a href="api.md">API reference</a> · This page works offline.</footer></main></body></html>

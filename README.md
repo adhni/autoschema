@@ -4,6 +4,8 @@ Turn a CSV or pandas DataFrame into inferred relational SQL tables, a reconstruc
 
 ## Start here
 
+Read **[How AutoSchema works](docs/how_it_works.md)** for a plain-language explanation of the processing pipeline, inferred tables, reconstruction checks, examples, and planned review workflow. An **[offline HTML version](docs/how_it_works.html)** is included for opening directly in your browser.
+
 An already-run, synthetic retail example is in **[`results/retail-demo/`](results/retail-demo/)**. Open **[`report.html`](results/retail-demo/report.html)** in your browser to see the pipeline, inferred table relationships, column profiles, processing times, and before/after storage statistics. No server or internet connection is needed. The folder also contains the SQL tables as CSVs and a complete SQL export with inserts.
 
 The sample has **4,800 rows × 23 columns** covering customers, orders, order lines, products, warehouses, and inventory locations. It includes blank delivery notes, Unicode, apostrophes, and postcodes with leading zeros. With the default search it produces six physical tables and a `dataset` view that reconstructs all input rows exactly. This is synthetic test data, not a real-world benchmark.
