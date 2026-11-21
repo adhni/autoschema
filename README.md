@@ -23,6 +23,8 @@ python3 autoschema.py data/gapminder.csv --engine duckdb --miner pandas --out ou
 
 Both runs were verified with the included Gapminder sample: 1,704 input rows, 142 countries, and exact reconstruction (`reconstruction_exact: true`). Each produces a `records` table with 1,704 rows, a `dim_country` table with 142 rows, and a `dataset` view with the original eight columns.
 
+Readable sample results are included in `results/`: `records.csv` and `dim_country.csv` contain the two tables, `schema.sql` contains their definitions, and `dataset.sql` is a complete SQLite export with table definitions, data inserts, and the reconstruction view. Restore it into a new database with `sqlite3 restored.sqlite < results/dataset.sql`. This folder is tracked by Git; the generated `output/` directory is ignored.
+
 Outputs: `dataset.sqlite` or `dataset.duckdb`, `schema.sql` (DDL), and `schema.json` (profiling and validation), in the selected output directory. Generated `output/` files are ignored by Git. Use a new `--out` directory when repeating a run; existing databases are not overwritten. Query the reconstruction view, for example:
 
 ```sql
