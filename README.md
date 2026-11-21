@@ -17,12 +17,15 @@ Python 3.9 or newer:
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -e .
 # Optional second database engine:
 python -m pip install -e '.[duckdb]'
 ```
 
-You can also run directly from this checkout with `python3 -m pip install -r requirements.txt`; editable installation is needed for the `autoschema` shell command, but importing the library and `python3 -m autoschema` work from the repository root without it.
+Use `python -m pip install .` for a regular installation or `python -m pip install -e .` for development. Optional notebook tools are available with `python -m pip install -e '.[notebook]'`, and contributor tools with `python -m pip install -e '.[dev,duckdb]'`. This is a local source package; no PyPI publication is implied.
+
+The package uses a `src/` layout. Install it into your active interpreter before importing it, including when working from the repository root. Dependencies and extras are declared in `pyproject.toml`; `requirements.txt` is a compatibility entry point for the same editable installation.
 
 ## Python library
 
@@ -57,16 +60,29 @@ For a DataFrame already in memory:
 import pandas as pd
 from autoschema import convert_dataframe
 
-frame = pd.DataFrame({
-    "row_id": [1, 2, 3, 4, 5, 6],
-    "customer_id": ["C01", "C02", "C01", "C02", "C01", "C02"],
-    "customer_name": ["Amina", "Yusuf", "Amina", "Yusuf", "Amina", "Yusuf"],
-})
+frame = pd.DataFrame(
+    {
+        "row_id": [1, 2, 3, 4, 5, 6],
+        "customer_id": ["C01", "C02", "C01", "C02", "C01", "C02"],
+        "customer_name": ["Amina", "Yusuf", "Amina", "Yusuf", "Amina", "Yusuf"],
+    }
+)
 result = convert_dataframe(frame, out="results/my-frame", key_columns=["row_id"])
 print(result.read_table())  # defaults to the complete dataset view
 ```
 
 The input DataFrame is not modified. Values are normalized to CSV-style strings and conservatively inferred as numeric; missing DataFrame values become empty strings. This preserves logical CSV values, not arbitrary pandas dtypes or Python objects. `result.tables` lists physical tables, `result.database_path` points to the database, and `result.query(sql, parameters)` runs read-only queries without retaining a connection. `summary()` returns an independent dictionary.
+
+Reopen saved results in a later session without rerunning conversion:
+
+```python
+from autoschema import load_result
+
+result = load_result("results/my-retail-run")
+print(result.query("SELECT COUNT(*) AS rows FROM dataset"))
+```
+
+Public methods are annotated and the distribution includes a `py.typed` marker. Conversion failures have documented exception types, and failed runs clean up staged artifacts before any complete result is published. See the [API reference](docs/api.md) for parameters, summaries, errors and saved-result compatibility, and the [changelog](CHANGELOG.md) for migration details.
 
 A runnable example is included:
 
@@ -96,7 +112,7 @@ python3 -m autoschema your.csv --out results/your-run \
 python3 -m autoschema your.csv --delimiter ';' --out results/semicolon-run
 ```
 
-After installation, `autoschema ...` is equivalent to `python3 -m autoschema ...`. The original `python3 autoschema.py ...` runner also works. Defaults now use SQLite/pandas, so Desbordante is not required. The old `--miner desbordante` flag returns an explicit unsupported-adapter error; no Desbordante results are claimed.
+After installation, `autoschema ...` is equivalent to `python3 -m autoschema ...`. The standalone `autoschema.py` runner was retired in 0.3 to avoid shadowing the installed package; use either supported entry point. Defaults now use SQLite/pandas, so Desbordante is not required. The old `--miner desbordante` flag returns an explicit unsupported-adapter error; no Desbordante results are claimed.
 
 Use a **new or empty output directory** for every run. AutoSchema refuses to overwrite any existing artifacts. `results/` is visible and tracked by Git; `output/` is ignored and may be hidden by editor settings.
 
@@ -151,10 +167,15 @@ python3 -m autoschema data/retail_complex.csv --out results/new-demo
 # Increase complexity/row count; still must fit in memory.
 python3 examples/generate_retail.py --orders 10000 --out data/retail_larger.csv
 
-# Standard-library tests; optional DuckDB checks skip if it is not installed.
-python3 -m unittest discover -s tests -v
+# Install development tools and run the checks.
+python3 -m pip install -e '.[dev,duckdb]'
+python3 -m ruff check .
+python3 -m ruff format --check .
+python3 -m pytest --cov
 ```
 
 Tests cover composite dependencies and keys, duplicate preservation, conflicting mappings, transitive relationships, lexical values, Unicode, SQL dump restoration, output protection, bounded searches, read-only queries and report links. SQLite and optional DuckDB are exercised. The original Gapminder sample remains in `data/gapminder.csv`; historical exports are in `examples/result/` and the root of `results/`.
 
 Gapminder source: historical country observations distributed in [Plotly sample datasets](https://github.com/plotly/datasets). The retail sample is generated locally by `examples/generate_retail.py` and contains no real customer information.
+
+Build and release-verification instructions are in [CONTRIBUTING.md](CONTRIBUTING.md). CI configuration checks installed-package behavior, supported-version combinations, source/wheel builds and distribution metadata.

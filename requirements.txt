@@ -1,2 +1,2 @@
-pandas>=1.5
-# Optional DuckDB engine: python3 -m pip install '.[duckdb]'
+# Compatibility entry point; dependency declarations live in pyproject.toml.
+-e .

@@ -39,42 +39,77 @@ class ConversionTests(unittest.TestCase):
             for line in range(1, 5):
                 product = rng.randrange(3)
                 warehouse = rng.randrange(3)
-                rows.append({"order_id": f"O{order}", "line_number": line,
-                             "product_id": f"P{product}", "warehouse_id": f"W{warehouse}",
-                             "bin": "AB"[(product + warehouse) % 2],
-                             "quantity": (order + line) % 5 + 1})
+                rows.append(
+                    {
+                        "order_id": f"O{order}",
+                        "line_number": line,
+                        "product_id": f"P{product}",
+                        "warehouse_id": f"W{warehouse}",
+                        "bin": "AB"[(product + warehouse) % 2],
+                        "quantity": (order + line) % 5 + 1,
+                    }
+                )
         frame = pd.DataFrame(rows)
         result = self.convert(frame, key_columns=["order_id", "line_number"])
-        matching = [d for d in result.report["dimensions"] if set(d["keys"]) == {"product_id", "warehouse_id"}]
+        matching = [
+            d
+            for d in result.report["dimensions"]
+            if set(d["keys"]) == {"product_id", "warehouse_id"}
+        ]
         self.assertTrue(matching)
         self.assertIn("bin", matching[0]["attributes"])
         self.assertEqual(result.report["selected_key"], ["order_id", "line_number"])
-        self.assertEqual(Counter(result.read_table().itertuples(index=False, name=None)), Counter(frame.itertuples(index=False, name=None)))
+        self.assertEqual(
+            Counter(result.read_table().itertuples(index=False, name=None)),
+            Counter(frame.itertuples(index=False, name=None)),
+        )
         self.assert_sql_roundtrip(result)
 
     def test_duplicate_rows_blanks_and_text_fidelity(self):
-        frame = pd.DataFrame({
-            "id": ["001", "001", "002", "003"],
-            "value": ["1.00", "1.00", "", "NA"],
-            "note": ["O'Brien, café\nnext line", "O'Brien, café\nnext line", "<script>alert(1)</script>", "a\x00b"],
-            "huge": ["9223372036854775808", "9223372036854775808", "18446744073709551615", "0000"],
-        })
+        frame = pd.DataFrame(
+            {
+                "id": ["001", "001", "002", "003"],
+                "value": ["1.00", "1.00", "", "NA"],
+                "note": [
+                    "O'Brien, café\nnext line",
+                    "O'Brien, café\nnext line",
+                    "<script>alert(1)</script>",
+                    "a\x00b",
+                ],
+                "huge": [
+                    "9223372036854775808",
+                    "9223372036854775808",
+                    "18446744073709551615",
+                    "0000",
+                ],
+            }
+        )
         result = self.convert(frame)
         self.assertEqual(result.report["duplicate_rows"], 1)
         self.assertEqual(result.report["blank_cells"], 1)
         self.assertEqual(result.report["selected_key"], [])
-        self.assertEqual(Counter(result.read_table().itertuples(index=False, name=None)), Counter(frame.itertuples(index=False, name=None)))
+        self.assertEqual(
+            Counter(result.read_table().itertuples(index=False, name=None)),
+            Counter(frame.itertuples(index=False, name=None)),
+        )
         self.assert_sql_roundtrip(result)
         self.assertFalse(b"\x00" in (result.output_dir / "dataset.sql").read_bytes())
 
     def test_conflicting_dependency_stays_in_records(self):
-        frame = pd.DataFrame({"customer_id": ["A", "A", "B", "B", "A", "B"], "city": ["X", "Y", "X", "Y", "Y", "X"]})
+        frame = pd.DataFrame(
+            {"customer_id": ["A", "A", "B", "B", "A", "B"], "city": ["X", "Y", "X", "Y", "Y", "X"]}
+        )
         result = self.convert(frame)
         self.assertFalse(result.report["dimensions"])
         self.assertEqual(len(result.read_table()), 6)
 
     def test_dimension_keys_cannot_be_removed_by_later_dimensions(self):
-        frame = pd.DataFrame([{"a_id": f"A{i % 4}", "b_id": f"B{i % 4}", "city": f"City {i % 4}", "row_id": i} for i in range(40)])
+        frame = pd.DataFrame(
+            [
+                {"a_id": f"A{i % 4}", "b_id": f"B{i % 4}", "city": f"City {i % 4}", "row_id": i}
+                for i in range(40)
+            ]
+        )
         result = self.convert(frame)
         for dimension in result.report["dimensions"]:
             self.assertTrue(set(dimension["keys"]).issubset(result.report["records_columns"]))
@@ -82,7 +117,13 @@ class ConversionTests(unittest.TestCase):
         self.assert_sql_roundtrip(result)
 
     def test_auto_key_prefers_identifier_composite_over_measurement(self):
-        frame = pd.DataFrame([{"order_id": f"O{o}", "line_number": line, "measurement": o * 3 + line + 0.5} for o in range(5) for line in range(3)])
+        frame = pd.DataFrame(
+            [
+                {"order_id": f"O{o}", "line_number": line, "measurement": o * 3 + line + 0.5}
+                for o in range(5)
+                for line in range(3)
+            ]
+        )
         result = self.convert(frame)
         self.assertEqual(result.report["selected_key"], ["order_id", "line_number"])
 
@@ -117,21 +158,42 @@ class ConversionTests(unittest.TestCase):
         self.assert_sql_roundtrip(result)
 
     def test_malformed_csv_and_nul_are_rejected(self):
-        for name, contents in [("extra", "x,y\n1,2,3\n"), ("short", "x,y\n1\n"), ("nul", "x,y\n1,a\x00b\n")]:
+        for name, contents in [
+            ("extra", "x,y\n1,2,3\n"),
+            ("short", "x,y\n1\n"),
+            ("nul", "x,y\n1,a\x00b\n"),
+        ]:
             source = self.root / f"{name}.csv"
             source.write_text(contents)
             with self.assertRaises(ValueError):
                 convert_csv(source, out=self.root / name)
 
     def test_shared_customer_attributes_are_not_duplicated_in_orders(self):
-        rows = [{"order_id": f"O{o}", "customer_id": f"C{o % 3}", "customer_name": f"Customer {o % 3}", "city": f"City {o % 3}", "line_number": line, "quantity": (o + line) % 7} for o in range(20) for line in range(1, 4)]
+        rows = [
+            {
+                "order_id": f"O{o}",
+                "customer_id": f"C{o % 3}",
+                "customer_name": f"Customer {o % 3}",
+                "city": f"City {o % 3}",
+                "line_number": line,
+                "quantity": (o + line) % 7,
+            }
+            for o in range(20)
+            for line in range(1, 4)
+        ]
         result = self.convert(pd.DataFrame(rows), key_columns=["order_id", "line_number"])
         dimension = next(d for d in result.report["dimensions"] if d["keys"] == ["customer_id"])
         self.assertIn("customer_name", dimension["attributes"])
         self.assert_sql_roundtrip(result)
 
     def test_unsafe_identifier_names_stay_inside_output_directory(self):
-        frame = pd.DataFrame({"../../group_id": ["A", "B"] * 10, 'display "name"': ["Alpha", "Beta"] * 10, "row_id": range(20)})
+        frame = pd.DataFrame(
+            {
+                "../../group_id": ["A", "B"] * 10,
+                'display "name"': ["Alpha", "Beta"] * 10,
+                "row_id": range(20),
+            }
+        )
         result = self.convert(frame)
         for table in result.tables:
             self.assertTrue((result.output_dir / f"{table}.csv").exists())
@@ -148,13 +210,15 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(result.report["blank_cells"], 1)
 
     def test_nullable_and_categorical_dataframe_values(self):
-        frame = pd.DataFrame({
-            "row_id": [1, 2, 3],
-            "count": pd.Series([1, None, 2], dtype="Int64"),
-            "flag": pd.Series([True, None, False], dtype="boolean"),
-            "category": pd.Series(["A", None, "B"], dtype="category"),
-            "signed_zero": ["-0.0", "0.0", "1.0"],
-        })
+        frame = pd.DataFrame(
+            {
+                "row_id": [1, 2, 3],
+                "count": pd.Series([1, None, 2], dtype="Int64"),
+                "flag": pd.Series([True, None, False], dtype="boolean"),
+                "category": pd.Series(["A", None, "B"], dtype="category"),
+                "signed_zero": ["-0.0", "0.0", "1.0"],
+            }
+        )
         before = frame.copy(deep=True)
         result = self.convert(frame)
         actual = result.read_table()
@@ -171,7 +235,15 @@ class ConversionTests(unittest.TestCase):
             for a in range(2):
                 for b in range(2):
                     for c in range(2):
-                        rows.append({"a_id": a, "b_id": b, "c_id": c, "row_id": len(rows), "parity": str((a + b + c) % 2)})
+                        rows.append(
+                            {
+                                "a_id": a,
+                                "b_id": b,
+                                "c_id": c,
+                                "row_id": len(rows),
+                                "parity": str((a + b + c) % 2),
+                            }
+                        )
         result = self.convert(pd.DataFrame(rows), max_dependency_width=3)
         dimension = next(d for d in result.report["dimensions"] if len(d["keys"]) == 3)
         self.assertEqual(dimension["keys"], ["a_id", "b_id", "c_id"])
@@ -222,11 +294,15 @@ class ConversionTests(unittest.TestCase):
         con = duckdb.connect(":memory:")
         self.addCleanup(con.close)
         con.execute((result.output_dir / "dataset.sql").read_text())
-        self.assertEqual(Counter(con.execute("SELECT * FROM dataset").fetchall()), Counter(frame.itertuples(index=False, name=None)))
+        self.assertEqual(
+            Counter(con.execute("SELECT * FROM dataset").fetchall()),
+            Counter(frame.itertuples(index=False, name=None)),
+        )
 
     def test_cli_errors_are_actionable(self):
         from contextlib import redirect_stderr
         from io import StringIO
+
         stderr = StringIO()
         with redirect_stderr(stderr):
             code = main([str(self.root / "missing.csv"), "--out", str(self.root / "cli")])

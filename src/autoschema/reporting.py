@@ -18,10 +18,10 @@ def render_report(report):
         return f'<div class="bar-row"><span>{text(label)}</span><div class="track"><div class="fill" style="width:{width:.2f}%"></div></div><strong>{text(annotation or number(value))}</strong></div>'
 
     stages = [
-        ("read", "Read", f'{number(report["input_rows"])} rows'),
-        ("profile", "Profile", f'{report["input_columns"]} columns'),
-        ("discover", "Discover", f'{len(report["dependencies"])} dependencies'),
-        ("plan", "Plan", f'{len(report["tables"])} tables'),
+        ("read", "Read", f"{number(report['input_rows'])} rows"),
+        ("profile", "Profile", f"{report['input_columns']} columns"),
+        ("discover", "Discover", f"{len(report['dependencies'])} dependencies"),
+        ("plan", "Plan", f"{len(report['tables'])} tables"),
         ("write_database", "Write", report["engine"]),
         ("validate", "Verify", "Exact reconstruction"),
         ("export", "Export", "SQL + CSV"),
@@ -33,38 +33,72 @@ def render_report(report):
     cards = []
     for table in report["tables"]:
         columns = "".join(
-            f'<li><code>{text(c)}</code>'
+            f"<li><code>{text(c)}</code>"
             + (' <span class="tag">PK</span>' if c in table["primary_key"] else "")
-            + (' <span class="tag fk">FK</span>' if any(c in fk["columns"] for fk in table["foreign_keys"]) else "")
-            + "</li>" for c in table["columns"]
+            + (
+                ' <span class="tag fk">FK</span>'
+                if any(c in fk["columns"] for fk in table["foreign_keys"])
+                else ""
+            )
+            + "</li>"
+            for c in table["columns"]
         )
         joins = "".join(
-            '<p class="join">' + text(", ".join(fk["columns"])) + " → " + text(fk["references"]) + "</p>"
+            '<p class="join">'
+            + text(", ".join(fk["columns"]))
+            + " → "
+            + text(fk["references"])
+            + "</p>"
             for fk in table["foreign_keys"]
         )
         kind = "Fact table" if table["name"] == "records" else "Dimension"
-        cards.append(f'<article class="table-card"><small>{kind}</small><h3>{text(table["name"])}</h3><p>{number(table["rows"])} rows · {len(table["columns"])} columns</p><ul>{columns}</ul>{joins}</article>')
-    dependencies = "".join(
-        '<tr><td><code>' + text(" + ".join(d["keys"])) + '</code></td><td>' + text(", ".join(d["attributes"])) + f'</td><td>{number(d["distinct_keys"])}</td></tr>'
-        for d in report["dependencies"]
-    ) or '<tr><td colspan="3">No nontrivial dependencies found within the search bounds.</td></tr>'
+        cards.append(
+            f'<article class="table-card"><small>{kind}</small><h3>{text(table["name"])}</h3><p>{number(table["rows"])} rows · {len(table["columns"])} columns</p><ul>{columns}</ul>{joins}</article>'
+        )
+    dependencies = (
+        "".join(
+            "<tr><td><code>"
+            + text(" + ".join(d["keys"]))
+            + "</code></td><td>"
+            + text(", ".join(d["attributes"]))
+            + f"</td><td>{number(d['distinct_keys'])}</td></tr>"
+            for d in report["dependencies"]
+        )
+        or '<tr><td colspan="3">No nontrivial dependencies found within the search bounds.</td></tr>'
+    )
     profiles = "".join(
-        '<tr><td><code>' + text(p["name"]) + f'</code></td><td>{p["sql_type"]}</td><td>{number(p["distinct"])}</td><td>{p["distinct_percent"]:.1f}%</td><td>{number(p["blank_count"])}</td><td>'
-        + (text(f'{p["min"]:,.4g} / {p["mean"]:,.4g} / {p["max"]:,.4g}') if "mean" in p else "—") + '</td></tr>'
+        "<tr><td><code>"
+        + text(p["name"])
+        + f"</code></td><td>{p['sql_type']}</td><td>{number(p['distinct'])}</td><td>{p['distinct_percent']:.1f}%</td><td>{number(p['blank_count'])}</td><td>"
+        + (text(f"{p['min']:,.4g} / {p['mean']:,.4g} / {p['max']:,.4g}") if "mean" in p else "—")
+        + "</td></tr>"
         for p in report["column_profiles"]
     )
     warnings = "".join(f"<li>{text(warning)}</li>" for warning in report["warnings"])
-    file_links = ''.join(f'<a href="{text(t["name"])}.csv">{text(t["name"])}.csv</a>' for t in report["tables"])
+    file_links = "".join(
+        f'<a href="{text(t["name"])}.csv">{text(t["name"])}.csv</a>' for t in report["tables"]
+    )
     bytes_comparison = ""
     if report["source"]["bytes"]:
         maximum = max(report["source"]["bytes"], report["database_bytes"])
-        bytes_comparison = '<h3>Actual file sizes</h3>' + bar("Source CSV", report["source"]["bytes"], maximum, size(report["source"]["bytes"])) + bar("Database", report["database_bytes"], maximum, size(report["database_bytes"]))
+        bytes_comparison = (
+            "<h3>Actual file sizes</h3>"
+            + bar("Source CSV", report["source"]["bytes"], maximum, size(report["source"]["bytes"]))
+            + bar("Database", report["database_bytes"], maximum, size(report["database_bytes"]))
+        )
         bytes_comparison += f'<p class="muted">Database / CSV: {report["database_to_csv_ratio"]:.3f}×. SQL and CSV exports are additional files, excluded from this comparison.</p>'
     sql_key = ", ".join(report["selected_key"]) or "None found"
-    stats = [(number(report["input_rows"]), "Input rows"), (str(report["input_columns"]), "Input columns"),
-             (str(len(report["tables"])), "SQL tables"), (f'{report["cell_reduction_percent"]:.1f}%', "Fewer stored cells")]
-    metric_cards = "".join(f'<div class="metric"><strong>{text(value)}</strong><span>{label}</span></div>' for value, label in stats)
-    return f'''<!doctype html>
+    stats = [
+        (number(report["input_rows"]), "Input rows"),
+        (str(report["input_columns"]), "Input columns"),
+        (str(len(report["tables"])), "SQL tables"),
+        (f"{report['cell_reduction_percent']:.1f}%", "Fewer stored cells"),
+    ]
+    metric_cards = "".join(
+        f'<div class="metric"><strong>{text(value)}</strong><span>{label}</span></div>'
+        for value, label in stats
+    )
+    return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AutoSchema · {text(report["source"]["name"])}</title>
 <style>
@@ -81,4 +115,4 @@ def render_report(report):
 <section><h2>Files you can inspect</h2><div class="files"><a href="schema.sql">schema.sql</a><a href="dataset.sql">dataset.sql (schema + data)</a><a href="schema.json">schema.json (full statistics)</a>{file_links}</div><p class="muted">Files are relative to this report. The SQL export targets the same engine as the database.</p></section>
 <section><h2>Interpretation and limits</h2><ul>{warnings}</ul></section>
 <footer>AutoSchema {text(report["version"])} · Self-contained report. No external scripts, fonts, analytics or network requests.</footer>
-</main><script>document.getElementById('column-filter').addEventListener('input', function() {{ const term = this.value.toLowerCase(); document.querySelectorAll('#profiles tbody tr').forEach(row => {{ row.hidden = !row.cells[0].textContent.toLowerCase().includes(term); }}); }});</script></body></html>'''
+</main><script>document.getElementById('column-filter').addEventListener('input', function() {{ const term = this.value.toLowerCase(); document.querySelectorAll('#profiles tbody tr').forEach(row => {{ row.hidden = !row.cells[0].textContent.toLowerCase().includes(term); }}); }});</script></body></html>"""

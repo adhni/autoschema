@@ -1,20 +1,75 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "autoschema"
-version = "0.2.0"
+dynamic = ["version"]
 description = "CSV to inferred SQL tables with exact reconstruction and visual processing reports"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["pandas>=1.5"]
+keywords = ["csv", "sql", "normalization", "data-profiling", "schema-inference"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Typing :: Typed",
+]
 
 [project.optional-dependencies]
 duckdb = ["duckdb>=1.0"]
+notebook = ["jupyterlab>=4", "matplotlib>=3.5"]
+dev = [
+    "build>=1.2",
+    "pytest>=7",
+    "pytest-cov>=4",
+    "ruff>=0.9",
+    "twine>=5",
+]
 
 [project.scripts]
 autoschema = "autoschema.cli:main"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["autoschema*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "autoschema._version.__version__"}
+
+[tool.setuptools.package-data]
+autoschema = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
+filterwarnings = ["error::FutureWarning"]
+
+[tool.coverage.run]
+source = ["autoschema"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+extend-exclude = ["results", "output", "*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402", "F821"]
