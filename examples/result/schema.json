@@ -1,0 +1,83 @@
+{
+  "input_rows": 1704,
+  "columns": [
+    "country",
+    "continent",
+    "year",
+    "lifeExp",
+    "pop",
+    "gdpPercap",
+    "iso_alpha",
+    "iso_num"
+  ],
+  "cardinality": {
+    "country": 142,
+    "continent": 5,
+    "year": 12,
+    "lifeExp": 1626,
+    "pop": 1704,
+    "gdpPercap": 1704,
+    "iso_alpha": 141,
+    "iso_num": 141
+  },
+  "dependencies": {
+    "country": [
+      "continent",
+      "iso_alpha",
+      "iso_num"
+    ],
+    "continent": [],
+    "year": [],
+    "lifeExp": [],
+    "iso_alpha": [
+      "continent",
+      "iso_num"
+    ],
+    "iso_num": [
+      "continent",
+      "iso_alpha"
+    ]
+  },
+  "library_dependencies": [],
+  "miner": "pandas",
+  "engine": "sqlite",
+  "primary_key_candidates": [
+    [
+      "pop"
+    ],
+    [
+      "gdpPercap"
+    ],
+    [
+      "country",
+      "year"
+    ]
+  ],
+  "selected_key": [
+    "pop"
+  ],
+  "dimensions": [
+    {
+      "table": "dim_country",
+      "key": "country",
+      "attributes": [
+        "continent",
+        "iso_alpha",
+        "iso_num"
+      ]
+    }
+  ],
+  "records_columns": [
+    "country",
+    "year",
+    "lifeExp",
+    "pop",
+    "gdpPercap"
+  ],
+  "table_rows": {
+    "records": 1704,
+    "dim_country": 142
+  },
+  "reconstruction_exact": true,
+  "database_bytes": 118784
+}

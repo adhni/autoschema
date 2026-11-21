@@ -1,0 +1,3 @@
+CREATE TABLE "dim_country" ("country" VARCHAR, "continent" VARCHAR, "iso_alpha" VARCHAR, "iso_num" BIGINT, PRIMARY KEY ("country"));
+CREATE TABLE "records" ("country" VARCHAR, "year" BIGINT, "lifeExp" DOUBLE, "pop" BIGINT, "gdpPercap" DOUBLE, PRIMARY KEY ("pop"), FOREIGN KEY ("country") REFERENCES "dim_country" ("country"));
+CREATE VIEW dataset AS SELECT "records"."country" AS "country", "dim_country"."continent" AS "continent", "records"."year" AS "year", "records"."lifeExp" AS "lifeExp", "records"."pop" AS "pop", "records"."gdpPercap" AS "gdpPercap", "dim_country"."iso_alpha" AS "iso_alpha", "dim_country"."iso_num" AS "iso_num" FROM records JOIN "dim_country" ON records."country" = "dim_country"."country";
