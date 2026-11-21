@@ -6,3 +6,4 @@ output/
 build/
 dist/
 .DS_Store
+.ipynb_checkpoints/

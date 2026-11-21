@@ -8,6 +8,8 @@ An already-run, synthetic retail example is in **[`results/retail-demo/`](result
 
 The sample has **4,800 rows × 23 columns** covering customers, orders, order lines, products, warehouses, and inventory locations. It includes blank delivery notes, Unicode, apostrophes, and postcodes with leading zeros. With the default search it produces six physical tables and a `dataset` view that reconstructs all input rows exactly. This is synthetic test data, not a real-world benchmark.
 
+For a guided introduction, open **[`notebooks/autoschema_walkthrough.ipynb`](notebooks/autoschema_walkthrough.ipynb)**. It walks through CSV and DataFrame conversion, summary statistics, inferred keys and relationships, SQL queries, charts, the visual report, and reconstruction verification. Setup instructions are included in the notebook; each run saves to a fresh folder under `results/notebook-runs/`.
+
 ## Installation
 
 Python 3.9 or newer:
