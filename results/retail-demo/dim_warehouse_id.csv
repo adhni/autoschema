@@ -1,0 +1,5 @@
+warehouse_id,warehouse_name,warehouse_city,warehouse_postcode
+W3,Distribution centre 3,Perth,6000
+W1,Distribution centre 1,Sydney,2000
+W2,Distribution centre 2,Brisbane,4000
+W0,Distribution centre 0,Melbourne,0300
