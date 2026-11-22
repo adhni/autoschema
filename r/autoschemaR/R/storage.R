@@ -1,3 +1,9 @@
+.write_utf8_lines <- function(lines, path) {
+  stream <- file(path, open = "wb")
+  on.exit(close(stream))
+  writeLines(enc2utf8(lines), stream, useBytes = TRUE)
+}
+
 .quote <- function(name) paste0('"', gsub('"', '""', name, fixed = TRUE), '"')
 
 .check_destination <- function(out) {
@@ -105,10 +111,10 @@
     report$timings_seconds$validate <- unname(proc.time()[["elapsed"]] - started)
   })
   started <- proc.time()[["elapsed"]]
-  writeLines(enc2utf8(schema), file.path(output, "schema.sql"), useBytes = TRUE)
-  stream <- file(file.path(output, "dataset.sql"), open = "w", encoding = "UTF-8")
+  .write_utf8_lines(schema, file.path(output, "schema.sql"))
+  stream <- file(file.path(output, "dataset.sql"), open = "wb")
   tryCatch({
-    writeLines(c("BEGIN TRANSACTION;", head(schema, -1L)), stream)
+    writeLines(enc2utf8(c("BEGIN TRANSACTION;", head(schema, -1L))), stream, useBytes = TRUE)
     for (name in names(table_data)) {
       table <- table_data[[name]]
       readr::write_csv(table, file.path(output, paste0(name, ".csv")), na = "")
@@ -117,9 +123,9 @@
         if (is.numeric(x)) sprintf("%.17g", x) else as.character(DBI::dbQuoteLiteral(con, x))
       })
       values <- do.call(paste, c(unname(literals), sep = ", "))
-      writeLines(paste0("INSERT INTO ", .quote(name), " VALUES (", values, ");"), stream)
+      writeLines(enc2utf8(paste0("INSERT INTO ", .quote(name), " VALUES (", values, ");")), stream, useBytes = TRUE)
     }
-    writeLines(c(tail(schema, 1L), "COMMIT;"), stream)
+    writeLines(enc2utf8(c(tail(schema, 1L), "COMMIT;")), stream, useBytes = TRUE)
   }, finally = close(stream))
   report$timings_seconds$export <- unname(proc.time()[["elapsed"]] - started)
   report$database_bytes <- unname(file.info(database)$size)
@@ -143,7 +149,7 @@
   report <- .write_artifacts(analysis, stage)
   jsonlite::write_json(.json_report(report), file.path(stage, "schema.json"),
                       auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA)
-  writeLines(enc2utf8(.render_report(report)), file.path(stage, "report.html"), useBytes = TRUE)
+  .write_utf8_lines(.render_report(report), file.path(stage, "report.html"))
   .check_destination(destination)
   if (!file.rename(stage, destination)) .abort("Cannot publish output directory.", "autoschema_output_error")
   .new_result(destination, report)

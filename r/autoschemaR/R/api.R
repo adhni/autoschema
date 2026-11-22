@@ -8,7 +8,10 @@
            "autoschema_configuration_error")
   }
   if (!.scalar_string(encoding)) .abort("encoding must be a text encoding name.", "autoschema_configuration_error")
-  locale <- tryCatch(readr::locale(encoding = encoding), error = function(e) {
+  locale <- tryCatch(withCallingHandlers(
+    readr::locale(encoding = encoding),
+    warning = function(w) .abort(conditionMessage(w), "autoschema_configuration_error")
+  ), error = function(e) {
     .abort(conditionMessage(e), "autoschema_configuration_error")
   })
   stream <- file(csv_path, "rb")

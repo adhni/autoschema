@@ -13,7 +13,8 @@ expect_same_rows <- function(actual, expected) {
 
 # Execute each SQL statement while respecting semicolons inside quoted strings.
 execute_dump <- function(path) {
-  sql <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  sql <- rawToChar(readBin(path, "raw", n = file.info(path)$size))
+  Encoding(sql) <- "UTF-8"
   chars <- strsplit(sql, "", fixed = TRUE)[[1L]]
   quoted <- FALSE
   statements <- character()

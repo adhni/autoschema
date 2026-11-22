@@ -21,8 +21,9 @@ test_that("preview matches conversion and does not write artifacts", {
 test_that("CSV retains quoted blanks, whitespace, leading zeros, NA text and unicode", {
   file <- tempfile(fileext = ".csv")
   withr::defer(unlink(file))
-  writeLines(c('id;note;price', '001;"Caf\u00e9; A";1.00', '002;"a', 'b";2.00',
-               '003;NA;3.00', '004;"";4.00', '005;" padded ";5.00'), file, useBytes = TRUE)
+  csv <- paste(c('id;note;price', '001;"Caf\u00e9; A";1.00', '002;"a', 'b";2.00',
+               '003;NA;3.00', '004;"";4.00', '005;" padded ";5.00'), collapse = "\n")
+  writeBin(charToRaw(enc2utf8(csv)), file)
   result <- convert_csv(file, new_output(), delimiter = ";")
   rows <- read_table(result)
   expect_identical(rows$id, c("001", "002", "003", "004", "005"))
@@ -206,4 +207,13 @@ test_that("native numeric precision survives SQLite and SQL export", {
   actual <- read_table(result)$value
   expect_identical(as.numeric(actual[1:2]), values[1:2])
   expect_identical(actual[3L], "")
+})
+
+
+test_that("SQL exports preserve newline bytes in values and column names", {
+  frame <- data.frame(row_id = 1:4, text = c("a\r\nb", "x\ny", "c\rd", "caf\u00e9"))
+  names(frame)[2L] <- "line\nname"
+  result <- convert_dataframe(frame, new_output())
+  expect_same_rows(read_table(result), frame)
+  expect_same_rows(execute_dump(file.path(result$output_dir, "dataset.sql")), frame)
 })
