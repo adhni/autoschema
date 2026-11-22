@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-latest]
         python: ["3.9", "3.11", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -28,7 +28,7 @@ jobs:
       - run: python -m pytest --cov --cov-report=term-missing
 
   minimum-dependencies:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,7 +38,7 @@ jobs:
       - run: python -m pytest
 
   distribution:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

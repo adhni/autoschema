@@ -25,7 +25,7 @@ jobs:
 
   build:
     needs: checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,7 +44,7 @@ jobs:
   verify-testpypi:
     if: inputs.registry == 'pypi'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,7 +61,7 @@ jobs:
   publish:
     if: always() && needs.build.result == 'success' && (needs.verify-testpypi.result == 'success' || needs.verify-testpypi.result == 'skipped')
     needs: [build, verify-testpypi]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: ${{ inputs.registry }}
       url: ${{ inputs.registry == 'pypi' && 'https://pypi.org/project/autoschema/' || 'https://test.pypi.org/project/autoschema/' }}
