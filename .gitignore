@@ -12,3 +12,11 @@ dist/
 .coverage
 htmlcov/
 coverage.xml
+
+# Local R package builds and checks
+*.Rcheck/
+r-check/
+.Rhistory
+.RData
+.Rproj.user/
+autoschemaR_*.tar.gz

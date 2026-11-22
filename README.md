@@ -2,6 +2,15 @@
 
 Turn a CSV or pandas DataFrame into inferred relational SQL tables, a reconstruction view, readable exports, and a visual processing report. Use it as a Python library or from the command line. SQLite works with just pandas; DuckDB is optional.
 
+## Native R library
+
+A separate native R package is in **[r/autoschemaR](r/autoschemaR/README.md)**. It
+provides CSV/data-frame previews, SQLite conversion, summary statistics, base R
+plots and HTML reports without Python or reticulate. It is a development package,
+not a CRAN release; installation and examples are in its README. The executed
+[R retail report](results/r-retail-demo/report.html) and its SQL/CSV outputs are
+available in `results/r-retail-demo/`.
+
 ## Start here
 
 Read **[How AutoSchema works](docs/how_it_works.md)** for a plain-language explanation of the processing pipeline, inferred tables, reconstruction checks, examples, and schema preview workflow. An **[offline HTML version](docs/how_it_works.html)** is included for opening directly in your browser.

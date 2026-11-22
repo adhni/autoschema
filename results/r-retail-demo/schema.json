@@ -1,0 +1,474 @@
+{
+  "version": "0.1.0.9000",
+  "implementation": "R",
+  "report_format_version": 1,
+  "engine": "sqlite",
+  "miner": "R",
+  "source": {
+    "kind": "csv",
+    "name": "retail_complex.csv",
+    "bytes": 827266
+  },
+  "input_rows": 4800,
+  "input_columns": 23,
+  "columns": ["order_id", "order_date", "order_status", "sales_channel", "customer_id", "customer_name", "customer_city", "customer_segment", "line_number", "product_id", "product_name", "category", "brand", "unit_price", "warehouse_id", "warehouse_name", "warehouse_city", "warehouse_postcode", "bin_location", "reorder_point", "quantity", "discount_percent", "delivery_note"],
+  "duplicate_rows": 0,
+  "blank_cells": 1380,
+  "column_profiles": [
+    {
+      "name": "order_id",
+      "sql_type": "VARCHAR",
+      "distinct": 1200,
+      "distinct_percent": 25,
+      "blank_count": 0
+    },
+    {
+      "name": "order_date",
+      "sql_type": "VARCHAR",
+      "distinct": 90,
+      "distinct_percent": 1.88,
+      "blank_count": 0
+    },
+    {
+      "name": "order_status",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "sales_channel",
+      "sql_type": "VARCHAR",
+      "distinct": 3,
+      "distinct_percent": 0.06,
+      "blank_count": 0
+    },
+    {
+      "name": "customer_id",
+      "sql_type": "VARCHAR",
+      "distinct": 120,
+      "distinct_percent": 2.5,
+      "blank_count": 0
+    },
+    {
+      "name": "customer_name",
+      "sql_type": "VARCHAR",
+      "distinct": 120,
+      "distinct_percent": 2.5,
+      "blank_count": 0
+    },
+    {
+      "name": "customer_city",
+      "sql_type": "VARCHAR",
+      "distinct": 6,
+      "distinct_percent": 0.12,
+      "blank_count": 0
+    },
+    {
+      "name": "customer_segment",
+      "sql_type": "VARCHAR",
+      "distinct": 3,
+      "distinct_percent": 0.06,
+      "blank_count": 0
+    },
+    {
+      "name": "line_number",
+      "sql_type": "INTEGER",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0,
+      "min": 1,
+      "max": 4,
+      "mean": 2.5
+    },
+    {
+      "name": "product_id",
+      "sql_type": "VARCHAR",
+      "distinct": 60,
+      "distinct_percent": 1.25,
+      "blank_count": 0
+    },
+    {
+      "name": "product_name",
+      "sql_type": "VARCHAR",
+      "distinct": 60,
+      "distinct_percent": 1.25,
+      "blank_count": 0
+    },
+    {
+      "name": "category",
+      "sql_type": "VARCHAR",
+      "distinct": 5,
+      "distinct_percent": 0.1,
+      "blank_count": 0
+    },
+    {
+      "name": "brand",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "unit_price",
+      "sql_type": "VARCHAR",
+      "distinct": 59,
+      "distinct_percent": 1.23,
+      "blank_count": 0
+    },
+    {
+      "name": "warehouse_id",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "warehouse_name",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "warehouse_city",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "warehouse_postcode",
+      "sql_type": "VARCHAR",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0
+    },
+    {
+      "name": "bin_location",
+      "sql_type": "VARCHAR",
+      "distinct": 104,
+      "distinct_percent": 2.17,
+      "blank_count": 0
+    },
+    {
+      "name": "reorder_point",
+      "sql_type": "INTEGER",
+      "distinct": 36,
+      "distinct_percent": 0.75,
+      "blank_count": 0,
+      "min": 5,
+      "max": 40,
+      "mean": 23.053125
+    },
+    {
+      "name": "quantity",
+      "sql_type": "INTEGER",
+      "distinct": 8,
+      "distinct_percent": 0.17,
+      "blank_count": 0,
+      "min": 1,
+      "max": 8,
+      "mean": 4.5075
+    },
+    {
+      "name": "discount_percent",
+      "sql_type": "INTEGER",
+      "distinct": 4,
+      "distinct_percent": 0.08,
+      "blank_count": 0,
+      "min": 0,
+      "max": 15,
+      "mean": 4.98958333333333
+    },
+    {
+      "name": "delivery_note",
+      "sql_type": "VARCHAR",
+      "distinct": 6,
+      "distinct_percent": 0.12,
+      "blank_count": 1380
+    }
+  ],
+  "cardinality": {
+    "order_id": 1200,
+    "order_date": 90,
+    "order_status": 4,
+    "sales_channel": 3,
+    "customer_id": 120,
+    "customer_name": 120,
+    "customer_city": 6,
+    "customer_segment": 3,
+    "line_number": 4,
+    "product_id": 60,
+    "product_name": 60,
+    "category": 5,
+    "brand": 4,
+    "unit_price": 59,
+    "warehouse_id": 4,
+    "warehouse_name": 4,
+    "warehouse_city": 4,
+    "warehouse_postcode": 4,
+    "bin_location": 104,
+    "reorder_point": 36,
+    "quantity": 8,
+    "discount_percent": 4,
+    "delivery_note": 6
+  },
+  "dependencies": [
+    {
+      "keys": ["order_id"],
+      "attributes": ["order_date", "order_status", "sales_channel", "customer_id", "customer_name", "customer_city", "customer_segment"],
+      "distinct_keys": 1200
+    },
+    {
+      "keys": ["customer_id"],
+      "attributes": ["customer_name", "customer_city", "customer_segment"],
+      "distinct_keys": 120
+    },
+    {
+      "keys": ["product_id"],
+      "attributes": ["product_name", "category", "brand", "unit_price"],
+      "distinct_keys": 60
+    },
+    {
+      "keys": ["warehouse_id"],
+      "attributes": ["warehouse_name", "warehouse_city", "warehouse_postcode"],
+      "distinct_keys": 4
+    },
+    {
+      "keys": ["customer_name"],
+      "attributes": ["customer_id", "customer_city", "customer_segment"],
+      "distinct_keys": 120
+    },
+    {
+      "keys": ["product_name"],
+      "attributes": ["product_id", "category", "brand", "unit_price"],
+      "distinct_keys": 60
+    },
+    {
+      "keys": ["warehouse_name"],
+      "attributes": ["warehouse_id", "warehouse_city", "warehouse_postcode"],
+      "distinct_keys": 4
+    },
+    {
+      "keys": ["warehouse_city"],
+      "attributes": ["warehouse_id", "warehouse_name", "warehouse_postcode"],
+      "distinct_keys": 4
+    },
+    {
+      "keys": ["warehouse_postcode"],
+      "attributes": ["warehouse_id", "warehouse_name", "warehouse_city"],
+      "distinct_keys": 4
+    },
+    {
+      "keys": ["product_id", "warehouse_id"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_id", "warehouse_name"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_id", "warehouse_city"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_id", "warehouse_postcode"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["warehouse_id", "product_name"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_name", "warehouse_name"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_name", "warehouse_city"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["product_name", "warehouse_postcode"],
+      "attributes": ["bin_location", "reorder_point"],
+      "distinct_keys": 240
+    },
+    {
+      "keys": ["category", "unit_price"],
+      "attributes": ["product_id", "product_name", "brand"],
+      "distinct_keys": 60
+    },
+    {
+      "keys": ["brand", "unit_price"],
+      "attributes": ["product_id", "product_name", "category"],
+      "distinct_keys": 60
+    },
+    {
+      "keys": ["unit_price", "bin_location"],
+      "attributes": ["product_id", "product_name", "category", "brand"],
+      "distinct_keys": 237
+    },
+    {
+      "keys": ["unit_price", "reorder_point"],
+      "attributes": ["product_id", "product_name", "category", "brand"],
+      "distinct_keys": 234
+    }
+  ],
+  "primary_key_candidates": [
+    ["order_id", "line_number"]
+  ],
+  "selected_key": ["order_id", "line_number"],
+  "dimensions": [
+    {
+      "table": "dim_product_id",
+      "keys": ["product_id"],
+      "attributes": ["product_name", "category", "brand", "unit_price"],
+      "cells_saved": 18900,
+      "rows": 60
+    },
+    {
+      "table": "dim_warehouse_id",
+      "keys": ["warehouse_id"],
+      "attributes": ["warehouse_name", "warehouse_city", "warehouse_postcode"],
+      "cells_saved": 14384,
+      "rows": 4
+    },
+    {
+      "table": "dim_customer_id",
+      "keys": ["customer_id"],
+      "attributes": ["customer_name", "customer_city", "customer_segment"],
+      "cells_saved": 13920,
+      "rows": 120
+    },
+    {
+      "table": "dim_order_id",
+      "keys": ["order_id"],
+      "attributes": ["order_date", "order_status", "sales_channel"],
+      "cells_saved": 9600,
+      "rows": 1200
+    },
+    {
+      "table": "dim_product_id_warehouse_id",
+      "keys": ["product_id", "warehouse_id"],
+      "attributes": ["bin_location", "reorder_point"],
+      "cells_saved": 8640,
+      "rows": 240
+    }
+  ],
+  "records_columns": ["order_id", "customer_id", "line_number", "product_id", "warehouse_id", "quantity", "discount_percent", "delivery_note"],
+  "tables": [
+    {
+      "name": "dim_product_id",
+      "rows": 60,
+      "columns": ["product_id", "product_name", "category", "brand", "unit_price"],
+      "primary_key": ["product_id"],
+      "foreign_keys": [],
+      "cells": 300
+    },
+    {
+      "name": "dim_warehouse_id",
+      "rows": 4,
+      "columns": ["warehouse_id", "warehouse_name", "warehouse_city", "warehouse_postcode"],
+      "primary_key": ["warehouse_id"],
+      "foreign_keys": [],
+      "cells": 16
+    },
+    {
+      "name": "dim_customer_id",
+      "rows": 120,
+      "columns": ["customer_id", "customer_name", "customer_city", "customer_segment"],
+      "primary_key": ["customer_id"],
+      "foreign_keys": [],
+      "cells": 480
+    },
+    {
+      "name": "dim_order_id",
+      "rows": 1200,
+      "columns": ["order_id", "order_date", "order_status", "sales_channel"],
+      "primary_key": ["order_id"],
+      "foreign_keys": [],
+      "cells": 4800
+    },
+    {
+      "name": "dim_product_id_warehouse_id",
+      "rows": 240,
+      "columns": ["product_id", "warehouse_id", "bin_location", "reorder_point"],
+      "primary_key": ["product_id", "warehouse_id"],
+      "foreign_keys": [],
+      "cells": 960
+    },
+    {
+      "name": "records",
+      "rows": 4800,
+      "columns": ["order_id", "customer_id", "line_number", "product_id", "warehouse_id", "quantity", "discount_percent", "delivery_note"],
+      "primary_key": ["order_id", "line_number"],
+      "foreign_keys": [
+        {
+          "columns": ["product_id"],
+          "references": "dim_product_id"
+        },
+        {
+          "columns": ["warehouse_id"],
+          "references": "dim_warehouse_id"
+        },
+        {
+          "columns": ["customer_id"],
+          "references": "dim_customer_id"
+        },
+        {
+          "columns": ["order_id"],
+          "references": "dim_order_id"
+        },
+        {
+          "columns": ["product_id", "warehouse_id"],
+          "references": "dim_product_id_warehouse_id"
+        }
+      ],
+      "cells": 38400
+    }
+  ],
+  "table_rows": {
+    "dim_product_id": 60,
+    "dim_warehouse_id": 4,
+    "dim_customer_id": 120,
+    "dim_order_id": 1200,
+    "dim_product_id_warehouse_id": 240,
+    "records": 4800
+  },
+  "input_cells": 110400,
+  "stored_cells": 44956,
+  "cell_reduction_percent": 59.28,
+  "database_bytes": 458752,
+  "database_to_csv_ratio": 0.555,
+  "reconstruction_exact": true,
+  "row_order_preserved": false,
+  "search": {
+    "max_dependency_width": 2,
+    "max_key_width": 2,
+    "max_candidate_columns": 30,
+    "max_checks": 2000,
+    "determinant_columns": ["order_id", "customer_id", "product_id", "warehouse_id", "order_date", "order_status", "sales_channel", "customer_name", "customer_city", "customer_segment", "line_number", "product_name", "category", "brand", "unit_price", "warehouse_name", "warehouse_city", "warehouse_postcode", "bin_location", "reorder_point", "quantity", "discount_percent", "delivery_note"],
+    "dependency_checks": 276,
+    "key_checks": 1,
+    "dependency_budget_reached": false,
+    "key_budget_reached": false
+  },
+  "timings_seconds": {
+    "read": 0.193,
+    "profile": 0.144,
+    "discover": 13.583,
+    "plan": 0.024,
+    "write_database": 0.087,
+    "validate": 0.144,
+    "export": 0.152
+  },
+  "processing_seconds": 14.327,
+  "warnings": ["Dependencies describe this input; review relationships before using them with future data.", "Processing and exact reconstruction verification hold the complete dataset in memory."]
+}

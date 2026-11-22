@@ -1,0 +1,18 @@
+Package: autoschemaR
+Title: Infer Relational Tables from CSV Files and Data Frames
+Version: 0.1.0.9000
+Authors@R: person("Adhni", role = c("aut", "cre"),
+    email = "amul0019@student.monash.edu")
+Description: Discover bounded exact functional dependencies, preview a relational
+    schema, and convert tabular data into SQLite tables with verified reconstruction.
+    Export SQL, CSV, summary statistics and a self-contained HTML processing report.
+    All inference and processing run in R without a Python runtime.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: DBI (>= 1.1.0), RSQLite (>= 2.2.0), jsonlite (>= 1.8.0), readr (>= 2.1.0), graphics, stats, utils
+Suggests: testthat (>= 3.2.0), withr (>= 2.5.0)
+Config/testthat/edition: 3
+URL: https://github.com/adhni/autoschema
+BugReports: https://github.com/adhni/autoschema/issues
+RoxygenNote: 7.3.2
