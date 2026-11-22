@@ -2,6 +2,9 @@
 
 ## 0.4.0a1 — alpha release candidate
 
+- Add 17 shared offline dataset contracts for Python and R, with public-data attribution and independent database, SQL and CSV verification.
+- Quote text fields in physical CSV exports to preserve bare carriage returns with LF line endings.
+
 - Add `preview_csv`, `preview_dataframe` and CLI `--preview` to inspect proposed tables, keys, dependencies and cell savings without writing files or claiming SQL verification.
 - Share parsing and inference between preview and conversion, with regression checks that the plans match.
 - Bound generated dimension names using deterministic hashes so long input headers export safely and remain distinct; original column names stay intact.

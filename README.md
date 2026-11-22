@@ -186,6 +186,14 @@ Dependencies are heuristics inferred from this file, not proven domain rules. Eq
 
 The implementation loads the entire dataset and reconstruction counters into memory. It is intended for exploratory datasets that fit in RAM, not unbounded files. Dependency/key widths default to two (maximum three), candidate determinant columns to 30, and candidate checks to 2,000 per search. Identifiers receive priority when a column budget applies. The report discloses budget limits and warnings. Increase bounds deliberately on wide datasets. CSV NUL characters, duplicate/case-colliding headers, malformed records, and empty datasets are rejected.
 
+## Shared dataset validation
+
+Both implementations are checked against the same **17 offline cases**, including
+Palmer Penguins, UCI Bike Sharing and synthetic malformed/conflicting/wide data.
+The [validation guide](docs/validation.md) explains the contracts, sources and how
+to run the combined Python/R check. Results distinguish data fidelity from
+runtime-specific schema/type choices.
+
 ## Reproduce and test
 
 ```sh

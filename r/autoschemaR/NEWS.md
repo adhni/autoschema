@@ -1,5 +1,8 @@
 # autoschemaR 0.1.0.9000
 
+- Quote physical CSV exports so empty single-column records are retained when read back.
+- Add 17 shared offline dataset contracts with attributed public snapshots and a combined Python/R validation runner.
+
 - Validate unsupported encodings across readr versions and preserve exact newline bytes in SQL exports on Windows.
 - Initial native R implementation with CSV/data-frame conversion and schema previews.
 - Add bounded composite dependency/key discovery and greedy dimension planning.

@@ -1,0 +1,2 @@
+# Shared fixture hashes and quoted newline cases require byte-exact checkouts.
+r/autoschemaR/inst/validation/*.csv -text

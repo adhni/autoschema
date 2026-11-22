@@ -1,0 +1,15 @@
+AutoSchema code and synthetic fixtures: MIT; see the package LICENSE file.
+
+Data in validation/penguins.csv: CC0 1.0, from palmerpenguins v0.1.0.
+Data in validation/penguins_blanks.csv: derived from that CC0 data by replacing
+literal NA tokens with empty CSV fields.
+Horst AM, Hill AP, Gorman KB (2020), doi:10.5281/zenodo.3960218.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Data in validation/bike_daily.csv: CC BY 4.0, unchanged day.csv from UCI Bike Sharing.
+Fanaee-T, H. (2013), doi:10.24432/C5W894. Filename changed; data unchanged.
+https://creativecommons.org/licenses/by/4.0/
+
+See validation/README.md and validation/manifest.json for full source links,
+transformation notes and snapshot checksums. These data licenses are separate
+from the MIT license covering package code.

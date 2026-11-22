@@ -144,6 +144,14 @@ larger than its CSV.
   `autoschema_invalid_data`, `autoschema_output_error`,
   `autoschema_reconstruction_error` and `autoschema_invalid_result` subclasses.
 
+## Shared dataset contracts
+
+Native tests also run the same 17 offline cases as the Python implementation.
+The public snapshots, source credits and manifest are in `inst/validation`;
+`inst/COPYRIGHTS` distinguishes their licenses from the code license. The combined
+repository runner additionally checks R SQL exports through Python's independent
+SQLite/CSV oracle. See the repository's `docs/validation.md` for commands and scope.
+
 ## Develop and check
 
 ```sh

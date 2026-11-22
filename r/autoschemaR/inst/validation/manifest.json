@@ -1,0 +1,570 @@
+{
+  "format_version": 1,
+  "cases": [
+    {
+      "id": "penguins_original",
+      "file": "penguins.csv",
+      "origin": "public",
+      "features": [
+        "literal NA tokens",
+        "mixed measurements"
+      ],
+      "sha256": "f204db2c753b0937caac3cb35258562c14f073e4bbc76be24b4c51ce22767a93",
+      "md5": "a06a0210251465a86fb970018292304d",
+      "options": {},
+      "expected": {
+        "columns": [
+          "species",
+          "island",
+          "bill_length_mm",
+          "bill_depth_mm",
+          "flipper_length_mm",
+          "body_mass_g",
+          "sex",
+          "year"
+        ],
+        "rows": 344,
+        "blank_cells": 0,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "penguins_blank_missing",
+      "file": "penguins_blanks.csv",
+      "origin": "derived-public",
+      "features": [
+        "missing fields",
+        "duplicates"
+      ],
+      "sha256": "1867a776a83379df4219f227bb1effb967da12adb13732127c8c8d120434c29b",
+      "md5": "375b82df4a44453892794e2704332d4e",
+      "options": {},
+      "expected": {
+        "columns": [
+          "species",
+          "island",
+          "bill_length_mm",
+          "bill_depth_mm",
+          "flipper_length_mm",
+          "body_mass_g",
+          "sex",
+          "year"
+        ],
+        "rows": 344,
+        "blank_cells": 19,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "bike_daily",
+      "file": "bike_daily.csv",
+      "origin": "public",
+      "options": {
+        "key_columns": [
+          "dteday"
+        ]
+      },
+      "required_dependencies": [
+        {
+          "keys": [
+            "holiday",
+            "weekday"
+          ],
+          "attributes": [
+            "workingday"
+          ]
+        }
+      ],
+      "features": [
+        "calendar dependencies",
+        "weather measurements"
+      ],
+      "sha256": "a6bcf826782d3c0fbfdcbeead17cd0884185a0dafe8ff10cd48a874ee7ba18be",
+      "md5": "fc9dd35812a1ee180fe17e6ef72a4121",
+      "expected": {
+        "columns": [
+          "instant",
+          "dteday",
+          "season",
+          "yr",
+          "mnth",
+          "holiday",
+          "weekday",
+          "workingday",
+          "weathersit",
+          "temp",
+          "atemp",
+          "hum",
+          "windspeed",
+          "casual",
+          "registered",
+          "cnt"
+        ],
+        "rows": 731,
+        "blank_cells": 0,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "messy_orders",
+      "file": "messy_orders.csv",
+      "options": {
+        "key_columns": [
+          "order_id",
+          "line_number"
+        ]
+      },
+      "required_dependencies": [
+        {
+          "keys": [
+            "customer_id"
+          ],
+          "attributes": [
+            "customer_name",
+            "customer_city",
+            "postcode"
+          ]
+        }
+      ],
+      "features": [
+        "composite key",
+        "unicode",
+        "quoted newlines",
+        "blanks",
+        "leading zeros"
+      ],
+      "sha256": "229df5e2fa799ac70b703266d77010e6f9d2666a541ca88008c19bdbcd812b3b",
+      "md5": "538e12fdac65dd98a4a6a7091a3d999f",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "order_id",
+          "line_number",
+          "customer_id",
+          "customer_name",
+          "customer_city",
+          "product_id",
+          "product_name",
+          "postcode",
+          "quantity",
+          "unit_price",
+          "note"
+        ],
+        "rows": 120,
+        "blank_cells": 30,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "conflicting_customers",
+      "file": "conflicts.csv",
+      "options": {
+        "key_columns": [
+          "row_id"
+        ]
+      },
+      "forbidden_dependencies": [
+        {
+          "keys": [
+            "customer_id"
+          ],
+          "attributes": [
+            "city"
+          ]
+        }
+      ],
+      "expected_dimensions": 0,
+      "sha256": "c4d36322a175573ac2d32245b1b0732ad7053f738546e22f730c4c42cab97730",
+      "md5": "dd66d98096f50d4ba3beda4f9d15c3be",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "row_id",
+          "customer_id",
+          "city"
+        ],
+        "rows": 32,
+        "blank_cells": 0,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "wide_bounded_search",
+      "file": "wide.csv",
+      "options": {
+        "key_columns": [
+          "row_id"
+        ],
+        "max_candidate_columns": 8,
+        "max_checks": 12
+      },
+      "expect_search_warning": true,
+      "sha256": "df04d4ecad97cbc04fe8eee8e2ee6938f14f4037a5f48b5dc4cee5d86fa81771",
+      "md5": "4e5dade91a2287d9e8dcd3bc7f478187",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "row_id",
+          "attribute_000",
+          "attribute_001",
+          "attribute_002",
+          "attribute_003",
+          "attribute_004",
+          "attribute_005",
+          "attribute_006",
+          "attribute_007",
+          "attribute_008",
+          "attribute_009",
+          "attribute_010",
+          "attribute_011",
+          "attribute_012",
+          "attribute_013",
+          "attribute_014",
+          "attribute_015",
+          "attribute_016",
+          "attribute_017",
+          "attribute_018",
+          "attribute_019",
+          "attribute_020",
+          "attribute_021",
+          "attribute_022",
+          "attribute_023",
+          "attribute_024",
+          "attribute_025",
+          "attribute_026",
+          "attribute_027",
+          "attribute_028",
+          "attribute_029",
+          "attribute_030",
+          "attribute_031",
+          "attribute_032",
+          "attribute_033",
+          "attribute_034",
+          "attribute_035",
+          "attribute_036",
+          "attribute_037",
+          "attribute_038",
+          "attribute_039",
+          "attribute_040",
+          "attribute_041",
+          "attribute_042",
+          "attribute_043",
+          "attribute_044",
+          "attribute_045",
+          "attribute_046",
+          "attribute_047",
+          "attribute_048",
+          "attribute_049",
+          "attribute_050",
+          "attribute_051",
+          "attribute_052",
+          "attribute_053",
+          "attribute_054",
+          "attribute_055",
+          "attribute_056",
+          "attribute_057",
+          "attribute_058",
+          "attribute_059",
+          "attribute_060",
+          "attribute_061",
+          "attribute_062",
+          "attribute_063",
+          "attribute_064",
+          "attribute_065",
+          "attribute_066",
+          "attribute_067",
+          "attribute_068",
+          "attribute_069",
+          "attribute_070",
+          "attribute_071",
+          "attribute_072",
+          "attribute_073",
+          "attribute_074",
+          "attribute_075",
+          "attribute_076",
+          "attribute_077",
+          "attribute_078",
+          "attribute_079",
+          "attribute_080",
+          "attribute_081",
+          "attribute_082",
+          "attribute_083",
+          "attribute_084",
+          "attribute_085",
+          "attribute_086",
+          "attribute_087",
+          "attribute_088",
+          "attribute_089",
+          "attribute_090",
+          "attribute_091",
+          "attribute_092",
+          "attribute_093",
+          "attribute_094",
+          "attribute_095",
+          "attribute_096",
+          "attribute_097",
+          "attribute_098",
+          "attribute_099",
+          "attribute_100",
+          "attribute_101",
+          "attribute_102",
+          "attribute_103",
+          "attribute_104",
+          "attribute_105",
+          "attribute_106",
+          "attribute_107",
+          "attribute_108",
+          "attribute_109",
+          "attribute_110",
+          "attribute_111",
+          "attribute_112",
+          "attribute_113",
+          "attribute_114",
+          "attribute_115",
+          "attribute_116",
+          "attribute_117",
+          "attribute_118",
+          "attribute_119",
+          "attribute_120",
+          "attribute_121",
+          "attribute_122",
+          "attribute_123",
+          "attribute_124",
+          "attribute_125",
+          "attribute_126",
+          "attribute_127"
+        ],
+        "rows": 32,
+        "blank_cells": 0,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "long_identifiers",
+      "file": "long_names.csv",
+      "options": {
+        "key_columns": [
+          "row_id"
+        ]
+      },
+      "sha256": "38ed04979cd73982fa3f60604d37a07913017412586ba164b6342852e8238a8b",
+      "md5": "fba2a9596f9588971ff229be8bea09ad",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "row_id",
+          "customer_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_first_id",
+          "city",
+          "customer_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_second_id",
+          "name"
+        ],
+        "rows": 24,
+        "blank_cells": 0,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "unusual_text",
+      "file": "unusual_text.csv",
+      "options": {
+        "delimiter": ";",
+        "key_columns": [
+          "row_id"
+        ]
+      },
+      "expected_records": [
+        [
+          "1",
+          "a\nb",
+          "001"
+        ],
+        [
+          "2",
+          "a\r\nb",
+          "NA"
+        ],
+        [
+          "3",
+          "a\rb",
+          ""
+        ],
+        [
+          "4",
+          "café",
+          "001"
+        ],
+        [
+          "5",
+          "O'Brien; \"quoted\"",
+          "NA"
+        ],
+        [
+          "6",
+          "",
+          ""
+        ],
+        [
+          "7",
+          "padded ",
+          "001"
+        ],
+        [
+          "8",
+          "中文",
+          "NA"
+        ]
+      ],
+      "sha256": "fcc3f45aeda550f20641110f85d4a1540e7a1024e5a464297af3543d7eaf8ed3",
+      "md5": "93b55726ad18e4fe36ceddb473b05257",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "row_id",
+          "odd; \"column\"\nname",
+          "<script>alert(1)</script>"
+        ],
+        "rows": 8,
+        "blank_cells": 3,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "numeric_text_formats",
+      "file": "numeric_formats.csv",
+      "options": {
+        "key_columns": [
+          "row_id"
+        ]
+      },
+      "sha256": "5c560ab7844e139b97a7b9a7407e43ee35b10787f21fb964125731b171ba1337",
+      "md5": "106e3cf585726b6cc6a7afa8db306f84",
+      "origin": "synthetic",
+      "expected": {
+        "columns": [
+          "row_id",
+          "postcode",
+          "fixed",
+          "large",
+          "scientific",
+          "signed_zero",
+          "precision",
+          "blank"
+        ],
+        "rows": 16,
+        "blank_cells": 16,
+        "duplicate_rows": 0
+      }
+    },
+    {
+      "id": "quoted_empty_rows",
+      "file": "quoted_empty.csv",
+      "expected_records": [
+        [
+          ""
+        ],
+        [
+          "x"
+        ],
+        [
+          ""
+        ]
+      ],
+      "sha256": "c2acffe4b943cdf277e84ce58f196a2219dd32bbef9af87ad3cf93b7aa3ef5d7",
+      "md5": "b887816a578f8acb2381380400a1b122",
+      "origin": "synthetic",
+      "options": {},
+      "expected": {
+        "columns": [
+          "value"
+        ],
+        "rows": 3,
+        "blank_cells": 2,
+        "duplicate_rows": 1
+      }
+    },
+    {
+      "id": "duplicate_header",
+      "file": "duplicate_header.csv",
+      "expected_error": "invalid_data",
+      "sha256": "9a2503934ed1b17fb1f3da3a3c84720c13268d57d602e8c24251aee32c4e806b",
+      "md5": "fa6c61ab27a75402a11f3de305f60812",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "case_header",
+      "file": "case_header.csv",
+      "expected_error": "invalid_data",
+      "sha256": "31debb769543720f0c5ddd138cbc57dbaad6e4f099ab8ddec53824984fd56bfe",
+      "md5": "011939579a6ce1b53d2e7196f6e86ae6",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "ragged",
+      "file": "ragged.csv",
+      "expected_error": "invalid_data",
+      "sha256": "01f64716ee72e721ae4f7b038d14e1efcaef6294b99561e3f891f3241d0ece9f",
+      "md5": "3f248590dbc9cfade79f0b5bd9c42770",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "unclosed",
+      "file": "unclosed.csv",
+      "expected_error": "invalid_data",
+      "sha256": "f8fd1f676292ac1357688ce42cb6f1e471bed9cec2378c0d7c3fe6da3f134dba",
+      "md5": "3a1776798b574088dbcf1a4ee67a6ab1",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "empty",
+      "file": "empty.csv",
+      "expected_error": "invalid_data",
+      "sha256": "79d4e332d580f61d88f34a7438c969cdc5ad63d0689569044111306d2482b7ba",
+      "md5": "e109a12825477e37f4b45accee3ef0f5",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "nul_bytes",
+      "file": "nul_bytes.csv",
+      "expected_error": "invalid_data",
+      "sha256": "f0d52053e217b66945352b18344c088a1c06e0e390ec63f3c616bf827acdeeef",
+      "md5": "90888a1d03ee3bb8f362932e34eda6c0",
+      "origin": "synthetic",
+      "options": {}
+    },
+    {
+      "id": "invalid_domain_key",
+      "file": "messy_orders.csv",
+      "options": {
+        "key_columns": [
+          "customer_id"
+        ]
+      },
+      "expected_error": "invalid_data",
+      "sha256": "229df5e2fa799ac70b703266d77010e6f9d2666a541ca88008c19bdbcd812b3b",
+      "md5": "538e12fdac65dd98a4a6a7091a3d999f",
+      "origin": "synthetic"
+    }
+  ],
+  "public_sources": [
+    {
+      "file": "penguins.csv",
+      "url": "https://raw.githubusercontent.com/allisonhorst/palmerpenguins/v0.1.0/inst/extdata/penguins.csv",
+      "landing_page": "https://github.com/allisonhorst/palmerpenguins",
+      "license": "CC0-1.0",
+      "citation": "Horst AM, Hill AP, Gorman KB (2020). palmerpenguins. doi:10.5281/zenodo.3960218."
+    },
+    {
+      "file": "bike_daily.csv",
+      "url": "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip",
+      "member": "day.csv",
+      "landing_page": "https://archive.ics.uci.edu/dataset/275/bike+sharing+dataset",
+      "license": "CC-BY-4.0",
+      "citation": "Fanaee-T, H. (2013). Bike Sharing [Dataset]. UCI Machine Learning Repository. doi:10.24432/C5W894."
+    }
+  ]
+}

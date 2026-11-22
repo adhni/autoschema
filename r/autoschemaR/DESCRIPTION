@@ -11,7 +11,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
 Imports: DBI (>= 1.1.0), RSQLite (>= 2.2.0), jsonlite (>= 1.8.0), readr (>= 2.1.0), graphics, stats, utils
-Suggests: testthat (>= 3.2.0), withr (>= 2.5.0)
+Suggests: testthat (>= 3.2.0), withr (>= 2.5.0), tools
 Config/testthat/edition: 3
 URL: https://github.com/adhni/autoschema
 BugReports: https://github.com/adhni/autoschema/issues

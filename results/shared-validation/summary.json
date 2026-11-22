@@ -1,0 +1,458 @@
+{
+  "recorded_at_utc": "2026-11-22T05:57:21.563534+00:00",
+  "python_version": "3.9.6",
+  "python_package": "0.4.0a1",
+  "platform": "macOS-14.3.1-x86_64-i386-64bit",
+  "python": [
+    {
+      "id": "penguins_original",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.256678,
+      "rows": 344,
+      "columns": 8,
+      "tables": 1,
+      "cell_reduction_percent": 0.0
+    },
+    {
+      "id": "penguins_blank_missing",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.095027,
+      "rows": 344,
+      "columns": 8,
+      "tables": 1,
+      "cell_reduction_percent": 0.0
+    },
+    {
+      "id": "bike_daily",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 1.006324,
+      "rows": 731,
+      "columns": 16,
+      "tables": 2,
+      "cell_reduction_percent": 5.94
+    },
+    {
+      "id": "messy_orders",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.280912,
+      "rows": 120,
+      "columns": 11,
+      "tables": 4,
+      "cell_reduction_percent": 50.61
+    },
+    {
+      "id": "conflicting_customers",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.027577,
+      "rows": 32,
+      "columns": 3,
+      "tables": 1,
+      "cell_reduction_percent": 0.0
+    },
+    {
+      "id": "wide_bounded_search",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.613855,
+      "rows": 32,
+      "columns": 129,
+      "tables": 7,
+      "cell_reduction_percent": 48.5
+    },
+    {
+      "id": "long_identifiers",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.092592,
+      "rows": 24,
+      "columns": 5,
+      "tables": 3,
+      "cell_reduction_percent": 33.33
+    },
+    {
+      "id": "unusual_text",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.029877,
+      "rows": 8,
+      "columns": 3,
+      "tables": 1,
+      "cell_reduction_percent": 0.0
+    },
+    {
+      "id": "numeric_text_formats",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.111064,
+      "rows": 16,
+      "columns": 8,
+      "tables": 2,
+      "cell_reduction_percent": 9.38
+    },
+    {
+      "id": "quoted_empty_rows",
+      "status": "pass",
+      "outcome": "converted",
+      "conversion_seconds": 0.017164,
+      "rows": 3,
+      "columns": 1,
+      "tables": 1,
+      "cell_reduction_percent": 0.0
+    },
+    {
+      "id": "duplicate_header",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "case_header",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "ragged",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "unclosed",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "empty",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "nul_bytes",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    },
+    {
+      "id": "invalid_domain_key",
+      "status": "pass",
+      "outcome": "rejected_invalid_data"
+    }
+  ],
+  "all_passed": true,
+  "r": {
+    "r_version": "4.3.2",
+    "package_version": "0.1.0.9000",
+    "platform": "x86_64-apple-darwin20",
+    "cases": [
+      {
+        "id": "penguins_original",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.504,
+        "rows": 344,
+        "columns": 8,
+        "tables": 1,
+        "cell_reduction_percent": 0
+      },
+      {
+        "id": "penguins_blank_missing",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.078,
+        "rows": 344,
+        "columns": 8,
+        "tables": 1,
+        "cell_reduction_percent": 0
+      },
+      {
+        "id": "bike_daily",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.931,
+        "rows": 731,
+        "columns": 16,
+        "tables": 2,
+        "cell_reduction_percent": 5.94
+      },
+      {
+        "id": "messy_orders",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.166,
+        "rows": 120,
+        "columns": 11,
+        "tables": 4,
+        "cell_reduction_percent": 50.61
+      },
+      {
+        "id": "conflicting_customers",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.054,
+        "rows": 32,
+        "columns": 3,
+        "tables": 1,
+        "cell_reduction_percent": 0
+      },
+      {
+        "id": "wide_bounded_search",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.39,
+        "rows": 32,
+        "columns": 129,
+        "tables": 7,
+        "cell_reduction_percent": 48.5
+      },
+      {
+        "id": "long_identifiers",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.07,
+        "rows": 24,
+        "columns": 5,
+        "tables": 3,
+        "cell_reduction_percent": 33.33
+      },
+      {
+        "id": "unusual_text",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.041,
+        "rows": 8,
+        "columns": 3,
+        "tables": 1,
+        "cell_reduction_percent": 0
+      },
+      {
+        "id": "numeric_text_formats",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.064,
+        "rows": 16,
+        "columns": 8,
+        "tables": 2,
+        "cell_reduction_percent": 9.38
+      },
+      {
+        "id": "quoted_empty_rows",
+        "status": "pass",
+        "outcome": "converted",
+        "conversion_seconds": 0.034,
+        "rows": 3,
+        "columns": 1,
+        "tables": 1,
+        "cell_reduction_percent": 0
+      },
+      {
+        "id": "duplicate_header",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "case_header",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "ragged",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "unclosed",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "empty",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "nul_bytes",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      },
+      {
+        "id": "invalid_domain_key",
+        "status": "pass",
+        "outcome": "rejected_invalid_data"
+      }
+    ]
+  },
+  "comparisons": {
+    "penguins_original": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "year",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "penguins_blank_missing": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "year",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "bike_daily": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "instant",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "season",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "yr",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "mnth",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "holiday",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "weekday",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "workingday",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "weathersit",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "casual",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "registered",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "cnt",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "messy_orders": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "line_number",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        },
+        {
+          "column": "quantity",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "conflicting_customers": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "row_id",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "wide_bounded_search": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "row_id",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "long_identifiers": {
+      "schema_grouping_equal": true,
+      "table_names_equal": false,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "row_id",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "unusual_text": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "row_id",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "numeric_text_formats": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": [
+        {
+          "column": "row_id",
+          "python": "BIGINT",
+          "r": "INTEGER"
+        }
+      ]
+    },
+    "quoted_empty_rows": {
+      "schema_grouping_equal": true,
+      "table_names_equal": true,
+      "selected_keys_equal": true,
+      "declared_sql_type_differences": []
+    }
+  },
+  "r_skipped": false
+}

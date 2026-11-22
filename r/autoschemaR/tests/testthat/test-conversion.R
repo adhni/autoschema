@@ -38,6 +38,10 @@ test_that("one-column quoted empty rows are preserved", {
   writeLines(c("value", '""', "x"), file)
   result <- convert_csv(file, new_output())
   expect_identical(read_table(result)$value, c("", "x"))
+  exported <- readr::read_csv(file.path(result$output_dir, "records.csv"),
+                              col_types = readr::cols(.default = readr::col_character()),
+                              na = character(), show_col_types = FALSE)
+  expect_identical(exported$value, c("", "x"))
   json <- jsonlite::read_json(file.path(result$output_dir, "schema.json"))
   expect_type(json$columns, "list")
   expect_length(json$columns, 1L)

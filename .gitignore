@@ -20,3 +20,9 @@ r-check/
 .RData
 .Rproj.user/
 autoschemaR_*.tar.gz
+
+validation-output/
+
+# Per-case validation artifacts remain available locally and in CI artifacts.
+/results/shared-validation/python/
+/results/shared-validation/r/

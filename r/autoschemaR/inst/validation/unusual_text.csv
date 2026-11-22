@@ -1,0 +1,12 @@
+﻿row_id;"odd; ""column""
+name";<script>alert(1)</script>
+1;"a
+b";001
+2;"a
+b";NA
+3;"ab";
+4;café;001
+5;"O'Brien; ""quoted""";NA
+6;;
+7;padded ;001
+8;中文;NA

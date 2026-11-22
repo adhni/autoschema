@@ -117,7 +117,8 @@
     writeLines(enc2utf8(c("BEGIN TRANSACTION;", head(schema, -1L))), stream, useBytes = TRUE)
     for (name in names(table_data)) {
       table <- table_data[[name]]
-      readr::write_csv(table, file.path(output, paste0(name, ".csv")), na = "")
+      # Quote empty single-column records so readers do not skip blank lines.
+      readr::write_csv(table, file.path(output, paste0(name, ".csv")), na = "", quote = "all")
       # DBI quotes text; 17 significant digits preserve native R double values.
       literals <- lapply(table, function(x) {
         if (is.numeric(x)) sprintf("%.17g", x) else as.character(DBI::dbQuoteLiteral(con, x))

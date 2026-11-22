@@ -2,7 +2,9 @@ include LICENSE README.md CHANGELOG.md CONTRIBUTING.md pyproject.toml
 recursive-include src/autoschema *.py py.typed
 recursive-include tests *.py
 recursive-include docs *.md *.html
-recursive-include scripts *.py
+recursive-include scripts *.py *.R
+recursive-include r/autoschemaR/inst/validation *.csv *.json *.md
+include r/autoschemaR/tests/testthat/helper-shared.R r/autoschemaR/inst/COPYRIGHTS
 prune results
 prune output
 prune data

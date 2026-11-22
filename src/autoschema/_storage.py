@@ -1,5 +1,6 @@
 """Private database writing, exact verification and data exports."""
 
+import csv
 import itertools
 from collections import Counter
 from time import perf_counter
@@ -102,7 +103,14 @@ def write_artifacts(data, dimensions, remaining, selected, output, engine, timin
         stream.write("BEGIN TRANSACTION;\n")
         stream.write("\n".join(schema[:-1]) + "\n")
         for name, table in table_data.items():
-            table.to_csv(output / f"{name}.csv", index=False, lineterminator="\n")
+            # QUOTE_MINIMAL with LF line endings can leave bare CR unquoted,
+            # causing CSV readers to split one logical field into two records.
+            table.to_csv(
+                output / f"{name}.csv",
+                index=False,
+                lineterminator="\n",
+                quoting=csv.QUOTE_NONNUMERIC,
+            )
             for row in table.itertuples(index=False, name=None):
                 stream.write(
                     f"INSERT INTO {quote(name)} VALUES ("
