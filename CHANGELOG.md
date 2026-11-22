@@ -6,6 +6,7 @@
 - Share parsing and inference between preview and conversion, with regression checks that the plans match.
 - Bound generated dimension names using deterministic hashes so long input headers export safely and remain distinct; original column names stay intact.
 
+- Fix UTF-8 artifact reads in cross-platform tests and pin Linux CI to a runner that provides Python 3.9.
 - Add the MIT license, package project links, and a manual TestPyPI/PyPI Trusted Publishing workflow.
 
 ## 0.3.0 — local development release

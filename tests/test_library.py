@@ -66,7 +66,7 @@ class LibraryTests(unittest.TestCase):
         )
         con = sqlite3.connect(":memory:")
         self.addCleanup(con.close)
-        con.executescript((result.output_dir / "dataset.sql").read_text())
+        con.executescript((result.output_dir / "dataset.sql").read_text(encoding="utf-8"))
         self.assertEqual(con.execute("SELECT COUNT(*) FROM dataset").fetchone()[0], len(frame))
         self.assertEqual(preview_dataframe(frame, key_columns=["row_id"])["dimensions"], dimensions)
 
@@ -138,7 +138,7 @@ class LibraryTests(unittest.TestCase):
         self.assertIn("Primary key:", completed.stdout)
         self.assertIn("No files written", completed.stdout)
         self.assertNotIn("PASS", completed.stdout)
-        self.assertEqual(sentinel.read_text(), "keep")
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "keep")
         self.assertEqual(list(output.iterdir()), [sentinel])
 
     def test_reopen_result_after_moving_artifacts(self):
@@ -218,7 +218,7 @@ class LibraryTests(unittest.TestCase):
         output.write_text("keep me")
         with self.assertRaises(OutputExistsError):
             self.convert()
-        self.assertEqual(output.read_text(), "keep me")
+        self.assertEqual(output.read_text(encoding="utf-8"), "keep me")
 
     def test_failed_export_publishes_no_partial_results(self):
         for existing_empty in (False, True):
@@ -255,7 +255,7 @@ class LibraryTests(unittest.TestCase):
         with patch("autoschema.core.render_report", side_effect=competing_writer):
             with self.assertRaises(OutputExistsError):
                 self.convert()
-        self.assertEqual((output / "other.txt").read_text(), "other run")
+        self.assertEqual((output / "other.txt").read_text(encoding="utf-8"), "other run")
         self.assertFalse((output / "dataset.sqlite").exists())
 
     def test_missing_optional_engine_has_actionable_error(self):

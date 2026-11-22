@@ -26,7 +26,7 @@ class ConversionTests(unittest.TestCase):
     def assert_sql_roundtrip(self, result):
         connection = sqlite3.connect(":memory:")
         self.addCleanup(connection.close)
-        connection.executescript((result.output_dir / "dataset.sql").read_text())
+        connection.executescript((result.output_dir / "dataset.sql").read_text(encoding="utf-8"))
         actual = Counter(connection.execute("SELECT * FROM dataset").fetchall())
         expected = Counter(result.read_table().itertuples(index=False, name=None))
         self.assertEqual(actual, expected)
@@ -253,12 +253,14 @@ class ConversionTests(unittest.TestCase):
         result = self.convert(pd.DataFrame({"row_id": [1, 2, 3], '<unsafe & "name">': [4, 4, 8]}))
         stats = result.summary()
         self.assertEqual(stats["column_profiles"][1]["mean"], 16 / 3)
-        self.assertEqual(json.loads((result.output_dir / "schema.json").read_text()), stats)
+        self.assertEqual(
+            json.loads((result.output_dir / "schema.json").read_text(encoding="utf-8")), stats
+        )
         self.assertEqual(stats["input_cells"], 6)
         self.assertEqual(stats["stored_cells"], sum(t["cells"] for t in stats["tables"]))
         stats["input_rows"] = 100
         self.assertEqual(result.summary()["input_rows"], 3)
-        html = result.report_path.read_text()
+        html = result.report_path.read_text(encoding="utf-8")
         self.assertIn("&lt;unsafe &amp; &quot;name&quot;&gt;", html)
 
         class Links(HTMLParser):
@@ -293,7 +295,7 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(result.read_table()["note"].tolist(), list(frame["note"]))
         con = duckdb.connect(":memory:")
         self.addCleanup(con.close)
-        con.execute((result.output_dir / "dataset.sql").read_text())
+        con.execute((result.output_dir / "dataset.sql").read_text(encoding="utf-8"))
         self.assertEqual(
             Counter(con.execute("SELECT * FROM dataset").fetchall()),
             Counter(frame.itertuples(index=False, name=None)),
