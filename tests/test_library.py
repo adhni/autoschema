@@ -22,6 +22,8 @@ from autoschema import (
     convert_csv,
     convert_dataframe,
     load_result,
+    preview_csv,
+    preview_dataframe,
 )
 
 
@@ -36,6 +38,108 @@ class LibraryTests(unittest.TestCase):
 
     def convert(self, **kwargs):
         return convert_dataframe(self.frame, self.root / "result", **kwargs)
+
+    def test_long_column_names_export_with_distinct_repeatable_table_names(self):
+        from collections import Counter
+
+        prefix = "customer_" + "x" * 260
+        first, second = prefix + "_first_id", prefix + "_second_id"
+        frame = pd.DataFrame(
+            {
+                "row_id": range(24),
+                first: ["A", "B"] * 12,
+                "city": ["London", "Paris"] * 12,
+                second: ["C", "C", "D", "D"] * 6,
+                "name": ["Amina", "Amina", "Yusuf", "Yusuf"] * 6,
+            }
+        )
+        result = convert_dataframe(frame, self.root / "long", key_columns=["row_id"])
+        dimensions = result.summary()["dimensions"]
+        self.assertEqual(len(dimensions), 2)
+        self.assertEqual(len({d["table"] for d in dimensions}), 2)
+        for dimension in dimensions:
+            self.assertLessEqual(len(dimension["table"]), 80)
+            self.assertTrue((result.output_dir / (dimension["table"] + ".csv")).is_file())
+        self.assertEqual(
+            Counter(result.read_table().itertuples(index=False, name=None)),
+            Counter(frame.itertuples(index=False, name=None)),
+        )
+        con = sqlite3.connect(":memory:")
+        self.addCleanup(con.close)
+        con.executescript((result.output_dir / "dataset.sql").read_text())
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM dataset").fetchone()[0], len(frame))
+        self.assertEqual(preview_dataframe(frame, key_columns=["row_id"])["dimensions"], dimensions)
+
+    def test_preview_matches_conversion_without_writing_or_opening_database(self):
+        original = self.frame.copy(deep=True)
+        with patch(
+            "autoschema.core.write_artifacts", side_effect=AssertionError("database opened")
+        ):
+            plan = preview_dataframe(self.frame, key_columns=["row_id"])
+        self.assertEqual(list(self.root.iterdir()), [])
+        pd.testing.assert_frame_equal(self.frame, original)
+        self.assertIsNone(plan["reconstruction_exact"])
+        self.assertIsNone(plan["database_bytes"])
+        self.assertIsNone(plan["database_to_csv_ratio"])
+        self.assertNotIn("validate", plan["timings_seconds"])
+        json.dumps(plan)
+        converted = self.convert(key_columns=["row_id"]).summary()
+        for key in (
+            "tables",
+            "table_rows",
+            "dimensions",
+            "selected_key",
+            "dependencies",
+            "input_cells",
+            "stored_cells",
+            "cell_reduction_percent",
+            "search",
+        ):
+            self.assertEqual(plan[key], converted[key], key)
+
+    def test_csv_preview_uses_csv_validation_and_does_not_require_optional_engine(self):
+        source = self.root / "input.csv"
+        self.frame.to_csv(source, index=False, sep=";")
+        with patch.dict(sys.modules, {"duckdb": None}):
+            plan = preview_csv(source, delimiter=";", engine="duckdb")
+        self.assertEqual(plan["columns"], list(self.frame))
+        self.assertEqual(list(self.root.iterdir()), [source])
+        with self.assertRaises(InvalidDataError):
+            preview_csv(source, delimiter=";", key_columns=["group_id"])
+        with self.assertRaises(ConfigurationError):
+            preview_csv(source, delimiter="||")
+        with self.assertRaises(ConfigurationError):
+            preview_dataframe(self.frame, max_checks=0)
+        with self.assertRaises(TypeError):
+            preview_dataframe("not a DataFrame")
+        source.write_text("a,b\n1,2,3\n")
+        with self.assertRaises(InvalidDataError):
+            preview_csv(source)
+
+    def test_cli_preview_json_and_text_leave_destination_untouched(self):
+        source = self.root / "input.csv"
+        self.frame.to_csv(source, index=False)
+        output = self.root / "existing"
+        output.mkdir()
+        sentinel = output / "keep.txt"
+        sentinel.write_text("keep")
+        command = [
+            sys.executable,
+            "-m",
+            "autoschema",
+            str(source),
+            "--preview",
+            "--out",
+            str(output),
+        ]
+        completed = subprocess.run(command + ["--json"], text=True, capture_output=True, check=True)
+        self.assertIsNone(json.loads(completed.stdout)["reconstruction_exact"])
+        completed = subprocess.run(command, text=True, capture_output=True, check=True)
+        self.assertIn("Primary key:", completed.stdout)
+        self.assertIn("No files written", completed.stdout)
+        self.assertNotIn("PASS", completed.stdout)
+        self.assertEqual(sentinel.read_text(), "keep")
+        self.assertEqual(list(output.iterdir()), [sentinel])
 
     def test_reopen_result_after_moving_artifacts(self):
         result = self.convert()

@@ -8,7 +8,7 @@ import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 from time import perf_counter
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import pandas as pd
 
@@ -129,42 +129,7 @@ def convert_csv(
         key_columns,
         miner,
     )
-    if not isinstance(delimiter, str) or len(delimiter) != 1 or delimiter in "\r\n\x00":
-        raise ConfigurationError("delimiter must be one non-newline, non-NUL character.")
-    started = perf_counter()
-    if not isinstance(encoding, str) or not encoding:
-        raise ConfigurationError("encoding must be a nonempty text encoding name.")
-    source = Path(csv_path)
-    try:
-        with source.open(encoding=encoding, newline="") as stream:
-            reader = csv.reader(stream, delimiter=delimiter, strict=True)
-            header = next(reader, [])
-            if (
-                not header
-                or any(not c.strip() or "\x00" in c for c in header)
-                or len({c.casefold() for c in header}) != len(header)
-            ):
-                raise InvalidDataError(
-                    "CSV headers must be nonempty and unique, ignoring case, with no NUL characters."
-                )
-            rows = []
-            for row in reader:
-                if not row:
-                    continue
-                if len(row) != len(header):
-                    raise InvalidDataError(
-                        f"CSV record ending at line {reader.line_num} has {len(row)} fields; expected {len(header)}."
-                    )
-                if any("\x00" in value for value in row):
-                    raise InvalidDataError(
-                        "NUL characters in CSV files are unsupported. Remove them before importing."
-                    )
-                rows.append(row)
-    except (csv.Error, UnicodeError) as exc:
-        raise InvalidDataError(f"Invalid CSV input: {exc}") from exc
-    except LookupError as exc:
-        raise ConfigurationError(f"Unknown CSV encoding: {encoding}") from exc
-    frame = pd.DataFrame(rows, columns=header)
+    frame, source, read_seconds = _read_csv(csv_path, delimiter, encoding)
     return _convert(
         frame,
         out,
@@ -175,8 +140,8 @@ def convert_csv(
         max_checks=max_checks,
         key_columns=key_columns,
         miner=miner,
-        source={"kind": "csv", "name": source.name, "bytes": source.stat().st_size},
-        read_seconds=perf_counter() - started,
+        source=source,
+        read_seconds=read_seconds,
     )
 
 
@@ -225,6 +190,49 @@ def convert_dataframe(
     )
 
 
+def _read_csv(csv_path, delimiter, encoding):
+    if not isinstance(delimiter, str) or len(delimiter) != 1 or delimiter in "\r\n\x00":
+        raise ConfigurationError("delimiter must be one non-newline, non-NUL character.")
+    started = perf_counter()
+    if not isinstance(encoding, str) or not encoding:
+        raise ConfigurationError("encoding must be a nonempty text encoding name.")
+    source = Path(csv_path)
+    try:
+        with source.open(encoding=encoding, newline="") as stream:
+            reader = csv.reader(stream, delimiter=delimiter, strict=True)
+            header = next(reader, [])
+            if (
+                not header
+                or any(not c.strip() or "\x00" in c for c in header)
+                or len({c.casefold() for c in header}) != len(header)
+            ):
+                raise InvalidDataError(
+                    "CSV headers must be nonempty and unique, ignoring case, with no NUL characters."
+                )
+            rows = []
+            for row in reader:
+                if not row:
+                    continue
+                if len(row) != len(header):
+                    raise InvalidDataError(
+                        f"CSV record ending at line {reader.line_num} has {len(row)} fields; expected {len(header)}."
+                    )
+                if any("\x00" in value for value in row):
+                    raise InvalidDataError(
+                        "NUL characters in CSV files are unsupported. Remove them before importing."
+                    )
+                rows.append(row)
+    except (csv.Error, UnicodeError) as exc:
+        raise InvalidDataError(f"Invalid CSV input: {exc}") from exc
+    except LookupError as exc:
+        raise ConfigurationError(f"Unknown CSV encoding: {encoding}") from exc
+    return (
+        pd.DataFrame(rows, columns=header),
+        {"kind": "csv", "name": source.name, "bytes": source.stat().st_size},
+        perf_counter() - started,
+    )
+
+
 def _convert(
     frame,
     out,
@@ -246,6 +254,77 @@ def _convert(
         raise OutputExistsError(
             f"Output directory is not empty: {destination}. Choose a new output directory."
         )
+    data, report = _analyze(
+        frame,
+        engine=engine,
+        max_dependency_width=max_dependency_width,
+        max_key_width=max_key_width,
+        max_candidate_columns=max_candidate_columns,
+        max_checks=max_checks,
+        key_columns=key_columns,
+        miner=miner,
+        source=source,
+        read_seconds=read_seconds,
+    )
+    dimensions = report["dimensions"]
+    remaining = report["records_columns"]
+    selected = report["selected_key"]
+    timing = report["timings_seconds"].copy()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    # Build all artifacts away from the destination so a failed export never
+    # exposes a database without its summary, report or data files.
+    with tempfile.TemporaryDirectory(prefix=".autoschema-", dir=destination.parent) as temporary:
+        output = Path(temporary) / "artifacts"
+        output.mkdir()
+        table_profiles, database_bytes = write_artifacts(
+            data,
+            dimensions,
+            remaining,
+            selected,
+            output,
+            engine,
+            timing,
+        )
+        report.update(
+            tables=table_profiles,
+            database_bytes=database_bytes,
+            database_to_csv_ratio=round(database_bytes / source["bytes"], 3)
+            if source["bytes"]
+            else None,
+            reconstruction_exact=True,
+            timings_seconds={k: round(v, 6) for k, v in timing.items()},
+            processing_seconds=round(sum(timing.values()), 6),
+        )
+        (output / "schema.json").write_text(
+            json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        (output / "report.html").write_text(render_report(report), encoding="utf-8")
+        # Recheck after inference: another run may have used this destination.
+        if destination.exists():
+            try:
+                destination.rmdir()  # only an empty destination can be removed
+            except OSError as exc:
+                raise OutputExistsError(
+                    f"Output directory is no longer empty: {destination}."
+                ) from exc
+        output.rename(destination)
+    database = destination / ("dataset.sqlite" if engine == "sqlite" else "dataset.duckdb")
+    return ConversionResult(destination, database, report)
+
+
+def _analyze(
+    frame,
+    *,
+    engine,
+    max_dependency_width,
+    max_key_width,
+    max_candidate_columns,
+    max_checks,
+    key_columns,
+    miner,
+    source,
+    read_seconds,
+):
     timing = {"read": read_seconds}
     started = perf_counter()
     data = _normalize(frame)
@@ -291,79 +370,162 @@ def _convert(
         warnings.append(
             "No beneficial decomposition was found within the search bounds; all columns remain in records."
         )
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    # Build all artifacts away from the destination so a failed export never
-    # exposes a database without its summary, report or data files.
-    with tempfile.TemporaryDirectory(prefix=".autoschema-", dir=destination.parent) as temporary:
-        output = Path(temporary) / "artifacts"
-        output.mkdir()
-        table_profiles, database_bytes = write_artifacts(
-            data,
-            dimensions,
-            remaining,
-            selected,
-            output,
-            engine,
-            timing,
+    dimension_rows = {tuple(d["keys"]): d["distinct_keys"] for d in dependencies}
+    table_profiles = []
+    for dimension in dimensions:
+        columns = dimension["keys"] + dimension["attributes"]
+        rows = dimension_rows[tuple(dimension["keys"])]
+        table_profiles.append(
+            {
+                "name": dimension["table"],
+                "rows": rows,
+                "columns": columns,
+                "primary_key": dimension["keys"],
+                "foreign_keys": [],
+                "cells": rows * len(columns),
+            }
         )
-        input_cells = len(data) * len(data.columns)
-        stored_cells = sum(t["cells"] for t in table_profiles)
-        report = {
-            "version": __version__,
-            "report_format_version": 1,
-            "source": source,
-            "engine": engine,
-            "miner": miner,
-            "input_rows": len(data),
-            "input_columns": len(data.columns),
-            "columns": list(data),
-            "duplicate_rows": int(data.duplicated().sum()),
-            "blank_cells": sum(p["blank_count"] for p in profile),
-            "column_profiles": profile,
-            "cardinality": {p["name"]: p["distinct"] for p in profile},
-            "dependencies": dependencies,
-            "primary_key_candidates": keys,
-            "selected_key": selected,
-            "dimensions": dimensions,
-            "records_columns": remaining,
-            "tables": table_profiles,
-            "table_rows": {t["name"]: t["rows"] for t in table_profiles},
-            "input_cells": input_cells,
-            "stored_cells": stored_cells,
-            "cell_reduction_percent": round(100 * (1 - stored_cells / input_cells), 2),
-            "database_bytes": database_bytes,
-            "database_to_csv_ratio": round(database_bytes / source["bytes"], 3)
-            if source["bytes"]
-            else None,
-            "reconstruction_exact": True,
-            "row_order_preserved": False,
-            "search": {
-                "max_dependency_width": max_dependency_width,
-                "max_key_width": max_key_width,
-                "max_candidate_columns": max_candidate_columns,
-                "max_checks": max_checks,
-                "determinant_columns": search_columns,
-                "dependency_checks": dependency_checks,
-                "key_checks": key_checks,
-                "dependency_budget_reached": dependency_truncated,
-                "key_budget_reached": key_truncated,
-            },
-            "timings_seconds": {k: round(v, 6) for k, v in timing.items()},
-            "processing_seconds": round(sum(timing.values()), 6),
-            "warnings": warnings,
+    table_profiles.append(
+        {
+            "name": "records",
+            "rows": len(data),
+            "columns": remaining,
+            "primary_key": selected,
+            "foreign_keys": [{"columns": d["keys"], "references": d["table"]} for d in dimensions],
+            "cells": len(data) * len(remaining),
         }
-        (output / "schema.json").write_text(
-            json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
-        (output / "report.html").write_text(render_report(report), encoding="utf-8")
-        # Recheck after inference: another run may have used this destination.
-        if destination.exists():
-            try:
-                destination.rmdir()  # only an empty destination can be removed
-            except OSError as exc:
-                raise OutputExistsError(
-                    f"Output directory is no longer empty: {destination}."
-                ) from exc
-        output.rename(destination)
-    database = destination / ("dataset.sqlite" if engine == "sqlite" else "dataset.duckdb")
-    return ConversionResult(destination, database, report)
+    )
+    input_cells = len(data) * len(data.columns)
+    stored_cells = sum(t["cells"] for t in table_profiles)
+    report = {
+        "version": __version__,
+        "report_format_version": 1,
+        "source": source,
+        "engine": engine,
+        "miner": miner,
+        "input_rows": len(data),
+        "input_columns": len(data.columns),
+        "columns": list(data),
+        "duplicate_rows": int(data.duplicated().sum()),
+        "blank_cells": sum(p["blank_count"] for p in profile),
+        "column_profiles": profile,
+        "cardinality": {p["name"]: p["distinct"] for p in profile},
+        "dependencies": dependencies,
+        "primary_key_candidates": keys,
+        "selected_key": selected,
+        "dimensions": dimensions,
+        "records_columns": remaining,
+        "tables": table_profiles,
+        "table_rows": {t["name"]: t["rows"] for t in table_profiles},
+        "input_cells": input_cells,
+        "stored_cells": stored_cells,
+        "cell_reduction_percent": round(100 * (1 - stored_cells / input_cells), 2),
+        "database_bytes": None,
+        "database_to_csv_ratio": None,
+        "reconstruction_exact": None,
+        "row_order_preserved": False,
+        "search": {
+            "max_dependency_width": max_dependency_width,
+            "max_key_width": max_key_width,
+            "max_candidate_columns": max_candidate_columns,
+            "max_checks": max_checks,
+            "determinant_columns": search_columns,
+            "dependency_checks": dependency_checks,
+            "key_checks": key_checks,
+            "dependency_budget_reached": dependency_truncated,
+            "key_budget_reached": key_truncated,
+        },
+        "timings_seconds": {k: round(v, 6) for k, v in timing.items()},
+        "processing_seconds": round(sum(timing.values()), 6),
+        "warnings": warnings,
+    }
+    return data, report
+
+
+def preview_csv(
+    csv_path: PathLike,
+    *,
+    engine: str = "sqlite",
+    max_dependency_width: int = 2,
+    max_key_width: int = 2,
+    max_candidate_columns: int = 30,
+    max_checks: int = 2000,
+    key_columns: Optional[Sequence[str]] = None,
+    delimiter: str = ",",
+    encoding: str = "utf-8-sig",
+    miner: str = "pandas",
+) -> dict[str, Any]:
+    """Return a JSON-compatible schema plan without creating files or a database.
+
+    Options match ``convert_csv`` except there is no output destination.
+    Cell counts are computed from input; database size and reconstruction status
+    are ``None`` because writing and SQL verification have not run. Inference
+    still loads the full CSV into memory. Review the plan, then convert the same
+    input with the same options; changes to the input can change the plan.
+    """
+    _validate_options(
+        engine,
+        max_dependency_width,
+        max_key_width,
+        max_candidate_columns,
+        max_checks,
+        key_columns,
+        miner,
+    )
+    frame, source, read_seconds = _read_csv(csv_path, delimiter, encoding)
+    _, report = _analyze(
+        frame,
+        engine=engine,
+        max_dependency_width=max_dependency_width,
+        max_key_width=max_key_width,
+        max_candidate_columns=max_candidate_columns,
+        max_checks=max_checks,
+        key_columns=key_columns,
+        miner=miner,
+        source=source,
+        read_seconds=read_seconds,
+    )
+    return report
+
+
+def preview_dataframe(
+    frame: pd.DataFrame,
+    *,
+    engine: str = "sqlite",
+    max_dependency_width: int = 2,
+    max_key_width: int = 2,
+    max_candidate_columns: int = 30,
+    max_checks: int = 2000,
+    key_columns: Optional[Sequence[str]] = None,
+) -> dict[str, Any]:
+    """Preview a DataFrame's schema using conversion options, without writing files.
+
+    The input is unchanged. Return fields and limitations match ``preview_csv``.
+    """
+    if not isinstance(frame, pd.DataFrame):
+        raise TypeError("frame must be a pandas DataFrame.")
+    miner = "pandas"
+    _validate_options(
+        engine,
+        max_dependency_width,
+        max_key_width,
+        max_candidate_columns,
+        max_checks,
+        key_columns,
+        miner,
+    )
+    source = {"kind": "dataframe", "name": "DataFrame", "bytes": None}
+    read_seconds = 0
+    _, report = _analyze(
+        frame,
+        engine=engine,
+        max_dependency_width=max_dependency_width,
+        max_key_width=max_key_width,
+        max_candidate_columns=max_candidate_columns,
+        max_checks=max_checks,
+        key_columns=key_columns,
+        miner=miner,
+        source=source,
+        read_seconds=read_seconds,
+    )
+    return report

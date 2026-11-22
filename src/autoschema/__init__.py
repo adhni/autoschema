@@ -1,7 +1,7 @@
 """Infer SQL tables from CSVs or pandas DataFrames, with an auditable report."""
 
 from ._version import __version__
-from .core import convert_csv, convert_dataframe
+from .core import convert_csv, convert_dataframe, preview_csv, preview_dataframe
 from .exceptions import (
     AutoSchemaError,
     ConfigurationError,
@@ -26,4 +26,6 @@ __all__ = [
     "convert_csv",
     "convert_dataframe",
     "load_result",
+    "preview_csv",
+    "preview_dataframe",
 ]

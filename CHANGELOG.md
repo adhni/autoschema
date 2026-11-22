@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0a1 — alpha release candidate
+
+- Add `preview_csv`, `preview_dataframe` and CLI `--preview` to inspect proposed tables, keys, dependencies and cell savings without writing files or claiming SQL verification.
+- Share parsing and inference between preview and conversion, with regression checks that the plans match.
+- Bound generated dimension names using deterministic hashes so long input headers export safely and remain distinct; original column names stay intact.
+
+- Add the MIT license, package project links, and a manual TestPyPI/PyPI Trusted Publishing workflow.
+
 ## 0.3.0 — local development release
 
 - Move the installable library into `src/autoschema` and separate inference, database storage, orchestration, and result handling.

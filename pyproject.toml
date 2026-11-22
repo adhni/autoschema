@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,8 @@ name = "autoschema"
 dynamic = ["version"]
 description = "CSV to inferred SQL tables with exact reconstruction and visual processing reports"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.9"
 dependencies = ["pandas>=1.5"]
 keywords = ["csv", "sql", "normalization", "data-profiling", "schema-inference"]
@@ -25,6 +27,12 @@ classifiers = [
     "Topic :: Database",
     "Typing :: Typed",
 ]
+
+[project.urls]
+Source = "https://github.com/adhni/autoschema"
+Documentation = "https://github.com/adhni/autoschema/blob/main/docs/api.md"
+Issues = "https://github.com/adhni/autoschema/issues"
+Changelog = "https://github.com/adhni/autoschema/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 duckdb = ["duckdb>=1.0"]

@@ -9,6 +9,8 @@ from autoschema import (
     convert_csv,
     convert_dataframe,
     load_result,
+    preview_csv,
+    preview_dataframe,
 )
 ```
 
@@ -62,6 +64,25 @@ convert_dataframe(
 Accepts a pandas DataFrame without modifying it. Missing values become empty strings. Values normalize to CSV-style strings, then integers or decimals are inferred only when their text round-trips safely. Leading zeros, oversized integers, signed-zero text, fixed decimal formatting and mixed blank columns remain text when needed. Original pandas dtypes, CSV quoting, original CSV bytes and SQL row order are not preserved. Duplicate row multiplicities are preserved.
 
 Both functions compare the reconstructed `dataset` view against the normalized typed input as multisets before returning. Functional dependencies are observed input patterns, not proven domain rules. Inference uses a bounded greedy star-schema plan, not a complete or optimal normalization algorithm. Processing and verification require the data to fit in memory.
+
+## Schema preview
+
+```python
+plan = preview_csv("orders.csv", key_columns=["order_id", "line_number"])
+# Or: plan = preview_dataframe(frame, key_columns=["row_id"])
+for table in plan["tables"]:
+    print(table["name"], table["columns"], table["primary_key"], table["foreign_keys"])
+# After review:
+result = convert_csv("orders.csv", out="results/orders", key_columns=["order_id", "line_number"])
+```
+
+`preview_csv(csv_path, *, ...) -> dict[str, Any]` accepts the same keyword options as `convert_csv` except `out`. `preview_dataframe(frame, *, ...) -> dict[str, Any]` matches `convert_dataframe` except `out`. Both use the same input validation, normalization, dependency discovery and planning code as conversion. They return a fresh JSON-compatible dictionary and leave inputs unchanged. No directories, databases or exports are created; DuckDB does not need to be installed to preview its plan.
+
+The dictionary follows the summary fields below, with proposed table row counts, columns, keys and cell reduction. `database_bytes`, `database_to_csv_ratio` and `reconstruction_exact` are `None`; write, validation and export timings are absent. No SQL verification has run. A preview is not a saved conversion and cannot be opened using `load_result`. Inference still holds the complete input in memory.
+
+Review the proposed schema, then run conversion with the same input and options. Conversion repeats analysis and verifies reconstruction. Changes to input or options can change the plan. You can set `key_columns`; editing the returned dictionary does not configure a subsequent conversion, and individual relationship acceptance/rejection is not implemented.
+
+CLI equivalents: `autoschema orders.csv --preview` and `autoschema orders.csv --preview --json`. With `--preview`, `--out` is ignored and existing output files are untouched.
 
 ## Results and saved conversions
 

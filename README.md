@@ -4,7 +4,7 @@ Turn a CSV or pandas DataFrame into inferred relational SQL tables, a reconstruc
 
 ## Start here
 
-Read **[How AutoSchema works](docs/how_it_works.md)** for a plain-language explanation of the processing pipeline, inferred tables, reconstruction checks, examples, and planned review workflow. An **[offline HTML version](docs/how_it_works.html)** is included for opening directly in your browser.
+Read **[How AutoSchema works](docs/how_it_works.md)** for a plain-language explanation of the processing pipeline, inferred tables, reconstruction checks, examples, and schema preview workflow. An **[offline HTML version](docs/how_it_works.html)** is included for opening directly in your browser.
 
 An already-run, synthetic retail example is in **[`results/retail-demo/`](results/retail-demo/)**. Open **[`report.html`](results/retail-demo/report.html)** in your browser to see the pipeline, inferred table relationships, column profiles, processing times, and before/after storage statistics. No server or internet connection is needed. The folder also contains the SQL tables as CSVs and a complete SQL export with inserts.
 
@@ -25,7 +25,7 @@ python -m pip install -e .
 python -m pip install -e '.[duckdb]'
 ```
 
-Use `python -m pip install .` for a regular installation or `python -m pip install -e .` for development. Optional notebook tools are available with `python -m pip install -e '.[notebook]'`, and contributor tools with `python -m pip install -e '.[dev,duckdb]'`. This is a local source package; no PyPI publication is implied.
+Use `python -m pip install .` for a regular installation or `python -m pip install -e .` for development. Optional notebook tools are available with `python -m pip install -e '.[notebook]'`, and contributor tools with `python -m pip install -e '.[dev,duckdb]'`. This is an alpha source package under the [MIT license](LICENSE). Version 0.4.0a1 is prepared for publication; it has not yet been uploaded to PyPI. See the [release guide](docs/releasing.md).
 
 The package uses a `src/` layout. Install it into your active interpreter before importing it, including when working from the repository root. Dependencies and extras are declared in `pyproject.toml`; `requirements.txt` is a compatibility entry point for the same editable installation.
 
@@ -55,6 +55,19 @@ sales = result.query("""
 """)
 print(sales)
 ```
+
+Review the proposed schema before writing files:
+
+```python
+from autoschema import preview_csv, preview_dataframe
+
+plan = preview_csv("data/retail_complex.csv", key_columns=["order_id", "line_number"])
+print(plan["tables"])  # columns, row counts, primary and foreign keys
+print(plan["cell_reduction_percent"])
+# When satisfied, call convert_csv with the same input and options.
+```
+
+Preview runs the same normalization and inference as conversion but creates no files or database. `reconstruction_exact`, `database_bytes` and `database_to_csv_ratio` are `None` until a real conversion runs. The input still needs to fit in memory. Use `preview_dataframe(frame, ...)` for a DataFrame. Individual relationship acceptance/rejection is not yet supported.
 
 For a DataFrame already in memory:
 
@@ -95,6 +108,11 @@ python3 -m examples.library_usage --out results/library-run
 ## Command line
 
 ```sh
+# Inspect proposed tables and keys without writing files.
+python3 -m autoschema data/retail_complex.csv --preview
+# Machine-readable plan:
+python3 -m autoschema data/retail_complex.csv --preview --json
+
 # Defaults: SQLite, pandas, dependencies and keys up to two columns.
 python3 -m autoschema data/retail_complex.csv --out results/retail-run
 

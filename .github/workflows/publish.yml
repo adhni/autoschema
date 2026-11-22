@@ -1,0 +1,82 @@
+name: Publish package
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: Publish to TestPyPI first, then select PyPI for the same commit
+        required: true
+        type: choice
+        default: testpypi
+        options:
+          - testpypi
+          - pypi
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ inputs.registry }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - run: python scripts/check_distribution.py dist/*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: dist/
+          if-no-files-found: error
+
+  verify-testpypi:
+    if: inputs.registry == 'pypi'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pandas
+      - name: Install the exact candidate from TestPyPI
+        run: |
+          VERSION=$(python -c 'import runpy; print(runpy.run_path("src/autoschema/_version.py")["__version__"])')
+          python -m pip install --index-url https://test.pypi.org/simple/ --no-deps "autoschema==$VERSION"
+          cd /tmp
+          python -c 'from autoschema import preview_dataframe; import pandas as pd; plan = preview_dataframe(pd.DataFrame({"id": [1, 2]})); assert plan["input_rows"] == 2; assert plan["reconstruction_exact"] is None'
+
+  publish:
+    if: always() && needs.build.result == 'success' && (needs.verify-testpypi.result == 'success' || needs.verify-testpypi.result == 'skipped')
+    needs: [build, verify-testpypi]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.registry }}
+      url: ${{ inputs.registry == 'pypi' && 'https://pypi.org/project/autoschema/' || 'https://test.pypi.org/project/autoschema/' }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: dist/
+      - name: Publish to TestPyPI
+        if: inputs.registry == 'testpypi'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+      - name: Publish to PyPI
+        if: inputs.registry == 'pypi'
+        uses: pypa/gh-action-pypi-publish@release/v1

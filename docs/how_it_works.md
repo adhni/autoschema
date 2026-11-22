@@ -1,6 +1,6 @@
 # How AutoSchema Converts CSV Data into SQL Tables
 
-Bismillah. AutoSchema turns a CSV file or pandas DataFrame into related SQL tables, then checks that joining those tables reconstructs the normalized input exactly. It helps you inspect repeated data, discover possible relationships, and query the result with SQL. The current library is version 0.3.0.
+Bismillah. AutoSchema turns a CSV file or pandas DataFrame into related SQL tables, then checks that joining those tables reconstructs the normalized input exactly. It helps you inspect repeated data, discover possible relationships, and query the result with SQL. The current library is version 0.4.0a1.
 
 ## The basic idea
 
@@ -144,8 +144,8 @@ The existing example is in `results/retail-demo/`. For a guided, executable walk
 
 **The current implementation needs the data to fit in memory.** Both conversion and exact reconstruction verification load data into RAM.
 
-## Planned preview and review workflow
+## Preview and review workflow
 
-The proposed next version would separate analysis from database generation: preview the suggested tables, inspect the evidence for each relationship, adjust keys, accept or reject relationships, and then write SQL from the reviewed plan. This review API is planned; version 0.3.0 currently performs inference and database generation in one conversion call.
+Use preview_csv or preview_dataframe to inspect proposed tables, column profiles, dependencies, primary and foreign keys, and cell savings before writing files. The CLI offers --preview and --preview --json. After review, run conversion with the same input and options; key_columns selects an explicit domain key. Preview does not create a database or verify reconstruction. Accepting or rejecting individual relationships is planned.
 
-Alhamdulillah, you can already convert data, inspect statistics and reports, query the reconstructed dataset, and reopen saved results. The next step is making the inferred schema easier to review before conversion, insyallah.
+Alhamdulillah, you can preview the inferred schema, convert data, inspect statistics and reports, query the reconstructed dataset, and reopen saved results.

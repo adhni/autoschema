@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from typing import Optional
 
 from ._version import __version__
-from .core import convert_csv
+from .core import convert_csv, preview_csv
 from .exceptions import AutoSchemaError
 
 
@@ -54,23 +54,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--delimiter", default=",")
     parser.add_argument("--encoding", default="utf-8-sig")
     parser.add_argument("--json", action="store_true", help="Print the full JSON summary")
+    parser.add_argument(
+        "--preview", action="store_true", help="Inspect the proposed schema without writing files"
+    )
     args = vars(parser.parse_args(argv))
     print_json = args.pop("json")
+    preview = args.pop("preview")
     source = args.pop("csv")
     try:
-        result = convert_csv(source, **args)
+        if preview:
+            args.pop("out")
+            report = preview_csv(source, **args)
+        else:
+            result = convert_csv(source, **args)
+            report = result.report
     except (AutoSchemaError, OSError, ValueError) as exc:
         print(f"autoschema: {exc}", file=sys.stderr)
         return 1
-    report = result.report
     if print_json:
         print(json.dumps(report, indent=2, ensure_ascii=False))
     else:
         print(
-            f"Converted {report['input_rows']:,} rows × {report['input_columns']} columns into {len(report['tables'])} SQL tables."
+            f"{'Preview:' if preview else 'Converted'} {report['input_rows']:,} rows × {report['input_columns']} columns {'->' if preview else 'into'} {len(report['tables'])} SQL tables."
         )
         for table in report["tables"]:
             print(f"  {table['name']}: {table['rows']:,} rows × {len(table['columns'])} columns")
+            if preview:
+                print(f"    Columns: {', '.join(table['columns'])}")
+                print(f"    Primary key: {', '.join(table['primary_key']) or 'None found'}")
+                for fk in table["foreign_keys"]:
+                    print(f"    Foreign key: {', '.join(fk['columns'])} -> {fk['references']}")
+        if preview:
+            print(f"Planned cell reduction: {report['cell_reduction_percent']:.1f}%")
+            print("No files written. SQL reconstruction has not been verified.")
+            for warning in report["warnings"]:
+                print(f"Warning: {warning}")
+            return 0
         print(
             f"Exact reconstruction: PASS | Stored cells reduced: {report['cell_reduction_percent']:.1f}% | Processing: {report['processing_seconds']:.3f}s"
         )

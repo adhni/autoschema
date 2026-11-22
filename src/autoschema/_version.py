@@ -1,3 +1,1 @@
-"""Single source of the package version for code and distribution metadata."""
-
-__version__ = "0.3.0"
+__version__ = "0.4.0a1"

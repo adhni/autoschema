@@ -1,5 +1,6 @@
 """Private normalization, profiling and bounded schema-inference algorithms."""
 
+import hashlib
 import itertools
 import math
 import re
@@ -165,6 +166,9 @@ def _plan(frame, dependencies, protected):
             break
         savings, _, _, _, keys, attributes = max(options)
         base = "dim_" + re.sub(r"[^A-Za-z0-9_]", "_", "_".join(keys))
+        if len(base) > 80:
+            digest = hashlib.sha256(base.encode("utf-8")).hexdigest()[:12]
+            base = base[:67] + "_" + digest
         name = base
         suffix = 2
         while name.casefold() in used_names:
